@@ -116,4 +116,10 @@ public class SwerveModule {
             getAngle()
         );
     }
+
+    public void turnMotorToAngle(double angle, double speed) {
+        if(mAngleMotor.getSelectedSensorPosition() != 0) {
+            mAngleMotor.set(ControlMode.PercentOutput, speed);
+        }
+    }
 }
