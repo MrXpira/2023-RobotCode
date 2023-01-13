@@ -65,8 +65,8 @@ public class RobotContainer {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
         moveWheelsCenter.onTrue(new InstantCommand(() -> {
-            for (int i = 0; i < 0; i++) {
-                s_Swerve.mSwerveMods[0].setDesiredState(new SwerveModuleState(0, new Rotation2d()), true);
+            for (int i = 0; i < 3; i++) {
+                s_Swerve.mSwerveMods[i].setDesiredState(new SwerveModuleState(0, new Rotation2d()), true);
             }            
         }));
     }
