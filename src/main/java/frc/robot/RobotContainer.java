@@ -1,5 +1,7 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -62,9 +64,13 @@ public class RobotContainer {
     private void configureButtonBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-        //moveWheelsCenter.onTrue(new Command(() -> s_Swerve.changeRotation()));
-
+        moveWheelsCenter.onTrue(new InstantCommand(() -> {
+            for (int i = 0; i < 0; i++) {
+                s_Swerve.mSwerveMods[0].setDesiredState(new SwerveModuleState(0, new Rotation2d()), true);
+            }            
+        }));
     }
+
 
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.

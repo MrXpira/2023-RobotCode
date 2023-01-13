@@ -115,8 +115,4 @@ public class Swerve extends SubsystemBase {
             SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Velocity", mod.getState().speedMetersPerSecond);    
         }
     }  
-
-    public void turnAngle() {
-        drive(null, 0, false, true);
-    }
 }   
