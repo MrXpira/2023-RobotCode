@@ -26,7 +26,6 @@ public class Swerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
     public SwerveModule[] mSwerveMods;
     public Pigeon2 gyro;
-    private double setRotation;
 
     public Swerve() {
         gyro = new Pigeon2(Constants.Swerve.pigeonID);
