@@ -45,7 +45,7 @@ public class Swerve extends SubsystemBase {
             DriverStation.reportError("CANcoder on Module " + mod.moduleNumber + " took " + mod.CANcoderInitTime + " ms to be ready.", false);
         }
 
-        Timer.delay(1.0); 
+        Timer.delay(3.0); 
         for(SwerveModule mod : mSwerveMods){
             mod.resetToAbsolute();
         }

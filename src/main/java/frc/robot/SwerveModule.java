@@ -10,6 +10,8 @@ import frc.lib.math.Conversions;
 import frc.lib.util.CTREModuleState;
 import frc.lib.util.SwerveModuleConstants;
 
+import java.sql.Driver;
+
 import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
@@ -104,11 +106,16 @@ public class SwerveModule {
     public void resetToAbsolute(){ // Changed to public to call it again after construction
         waitForCanCoder();
         
+        double mPos = mAngleMotor.getSelectedSensorPosition();
+        double ePos = angleEncoder.getAbsolutePosition();
+        DriverStation.reportError("Module: " + moduleNumber + ", AngleMotor Sensor Position: " + mPos , false);
+        DriverStation.reportError("Module: " + moduleNumber + ", angleEncoder Sensor Position: " + ePos , false);
+        
         double absolutePosition = Conversions.degreesToFalcon(getCanCoder().getDegrees() - angleOffset.getDegrees(), Constants.Swerve.angleGearRatio);
-        DriverStation.reportError("Module: " + moduleNumber + " AbsolutePosition " + absolutePosition, false);
 
-        ErrorCode err = mAngleMotor.setSelectedSensorPosition(absolutePosition, 0, 100);
-        DriverStation.reportError("Module: " + moduleNumber + " Sensor Positon " + err, false);        
+        mAngleMotor.setSelectedSensorPosition(absolutePosition, 0, 100);
+
+       
     }
 
     private void configAngleEncoder(){        
