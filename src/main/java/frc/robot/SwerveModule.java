@@ -4,11 +4,13 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import frc.lib.math.Conversions;
 import frc.lib.util.CTREModuleState;
 import frc.lib.util.SwerveModuleConstants;
 
+import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -23,6 +25,8 @@ public class SwerveModule {
     private TalonFX mDriveMotor;
     private CANCoder angleEncoder;
 
+    public double CANcoderInitTime = 0.0;
+
     SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.Swerve.driveKS, Constants.Swerve.driveKV, Constants.Swerve.driveKA);
 
     public SwerveModule(int moduleNumber, SwerveModuleConstants moduleConstants){
@@ -30,15 +34,15 @@ public class SwerveModule {
         this.angleOffset = moduleConstants.angleOffset;
         
         /* Angle Encoder Config */
-        angleEncoder = new CANCoder(moduleConstants.cancoderID);
+        angleEncoder = new CANCoder(moduleConstants.cancoderID, "rio");
         configAngleEncoder();
 
         /* Angle Motor Config */
-        mAngleMotor = new TalonFX(moduleConstants.angleMotorID);
+        mAngleMotor = new TalonFX(moduleConstants.angleMotorID, "rio");
         configAngleMotor();
 
         /* Drive Motor Config */
-        mDriveMotor = new TalonFX(moduleConstants.driveMotorID);
+        mDriveMotor = new TalonFX(moduleConstants.driveMotorID, "rio");
         configDriveMotor();
 
         lastAngle = getState().angle;
@@ -77,9 +81,34 @@ public class SwerveModule {
         return Rotation2d.fromDegrees(angleEncoder.getAbsolutePosition());
     }
 
-    private void resetToAbsolute(){
+    private void waitForCanCoder(){
+        /*
+         * Wait for up to 1000 ms for a good CANcoder signal.
+         *
+         * This prevents a race condition during program startup
+         * where we try to synchronize the Falcon encoder to the
+         * CANcoder before we have received any position signal
+         * from the CANcoder.
+         */
+        for (int i = 0; i < 100; ++i) {
+            double ang = angleEncoder.getAbsolutePosition();
+            if (angleEncoder.getLastError() == ErrorCode.OK) {
+                 break;
+            }
+            Timer.delay(0.010);            
+            CANcoderInitTime += 10;
+        }
+
+    }
+
+    public void resetToAbsolute(){ // Changed to public to call it again after construction
+        waitForCanCoder();
+        
         double absolutePosition = Conversions.degreesToFalcon(getCanCoder().getDegrees() - angleOffset.getDegrees(), Constants.Swerve.angleGearRatio);
-        mAngleMotor.setSelectedSensorPosition(absolutePosition);
+        DriverStation.reportError("AbsolutePosition on module " + absolutePosition, false);
+
+        ErrorCode err = mAngleMotor.setSelectedSensorPosition(absolutePosition, 0, 100);
+        DriverStation.reportError("Set Selected Sensor Positopn" + err, false);        
     }
 
     private void configAngleEncoder(){        
@@ -115,11 +144,5 @@ public class SwerveModule {
             Conversions.falconToMeters(mDriveMotor.getSelectedSensorPosition(), Constants.Swerve.wheelCircumference, Constants.Swerve.driveGearRatio), 
             getAngle()
         );
-    }
-
-    public void turnMotorToAngle(double angle, double speed) {
-        if(mAngleMotor.getSelectedSensorPosition() != 0) {
-            mAngleMotor.set(ControlMode.PercentOutput, speed);
-        }
     }
 }
