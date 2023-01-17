@@ -93,7 +93,7 @@ public class SwerveModule {
          * from the CANcoder.
          */
         for (int i = 0; i < 100; ++i) {
-            double ang = angleEncoder.getAbsolutePosition();
+            angleEncoder.getAbsolutePosition();
             if (angleEncoder.getLastError() == ErrorCode.OK) {
                  break;
             }
@@ -103,19 +103,15 @@ public class SwerveModule {
 
     }
 
-    public void resetToAbsolute(){ // Changed to public to call it again after construction
+    private void resetToAbsolute(){
         waitForCanCoder();
         
-        double mPos = mAngleMotor.getSelectedSensorPosition();
-        double ePos = angleEncoder.getAbsolutePosition();
-        DriverStation.reportError("Module: " + moduleNumber + ", AngleMotor Sensor Position: " + mPos , false);
-        DriverStation.reportError("Module: " + moduleNumber + ", angleEncoder Sensor Position: " + ePos , false);
+        mAngleMotor.getSelectedSensorPosition();
+        angleEncoder.getAbsolutePosition();
         
         double absolutePosition = Conversions.degreesToFalcon(getCanCoder().getDegrees() - angleOffset.getDegrees(), Constants.Swerve.angleGearRatio);
 
-        mAngleMotor.setSelectedSensorPosition(absolutePosition, 0, 100);
-
-       
+        mAngleMotor.setSelectedSensorPosition(absolutePosition, 0, 100);       
     }
 
     private void configAngleEncoder(){        
@@ -128,6 +124,9 @@ public class SwerveModule {
         mAngleMotor.configAllSettings(Robot.ctreConfigs.swerveAngleFXConfig);
         mAngleMotor.setInverted(Constants.Swerve.angleMotorInvert);
         mAngleMotor.setNeutralMode(Constants.Swerve.angleNeutralMode);
+        
+        
+        
         Timer.delay(0.1);
         resetToAbsolute();
     }

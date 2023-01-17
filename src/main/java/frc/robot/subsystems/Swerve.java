@@ -40,15 +40,6 @@ public class Swerve extends SubsystemBase {
         };
 
         swerveOdometry = new SwerveDriveOdometry(Constants.Swerve.swerveKinematics, getYaw(), getModulePositions());
-
-        for(SwerveModule mod : mSwerveMods){
-            DriverStation.reportError("CANcoder on Module " + mod.moduleNumber + " took " + mod.CANcoderInitTime + " ms to be ready.", false);
-        }
-
-        Timer.delay(3.0); 
-        for(SwerveModule mod : mSwerveMods){
-            mod.resetToAbsolute();
-        }
     }
 
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
