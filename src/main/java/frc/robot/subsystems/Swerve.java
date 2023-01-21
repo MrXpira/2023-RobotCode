@@ -130,6 +130,8 @@ public class Swerve extends SubsystemBase {
     }
 
     public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
+        PIDController thetaController = new PIDController(0, 0, 0);
+        thetaController.enableContinuousInput(-Math.PI, Math.PI);
         return new SequentialCommandGroup(
              new InstantCommand(() -> {
                // Reset odometry for the first path you run during auto
@@ -143,7 +145,7 @@ public class Swerve extends SubsystemBase {
                  Constants.Swerve.swerveKinematics, // SwerveDriveKinematics
                  new PIDController(0, 0, 0), // X controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
                  new PIDController(0, 0, 0), // Y controller (usually the same values as X controller)
-                 new PIDController(0, 0, 0), // Rotation controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+                 thetaController, // Rotation controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
                  this::setModuleStates, // Module states consumer
                  true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
                  this // Requires this drive subsystem
