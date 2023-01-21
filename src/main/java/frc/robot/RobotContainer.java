@@ -1,7 +1,7 @@
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
+import com.pathplanner.lib.server.PathPlannerServer;
+
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -50,6 +50,10 @@ public class RobotContainer {
             )
         );
 
+
+        PathPlannerServer.startServer(5811);
+
+
         // Configure the button bindings
         configureButtonBindings();
     }
@@ -73,6 +77,7 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // An ExampleCommand will run in autonomous
+        //return new exampleAuto(s_Swerve);
         return new exampleAuto(s_Swerve);
     }
 }
