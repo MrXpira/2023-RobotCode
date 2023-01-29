@@ -55,7 +55,7 @@ public class RobotContainer {
 
 
         // Configure the button bindings
-        configureButtonBindings();
+        configureBindings();
     }
 
     /**
@@ -64,7 +64,7 @@ public class RobotContainer {
      * edu.wpi.first.wpilibj.Joystick} or {@link XboxController}), and then passing it to a {@link
      * edu.wpi.first.wpilibj2.command.button.JoystickButton}.
      */
-    private void configureButtonBindings() {
+    private void configureBindings() {
         /* Driver Buttons */
         zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
     }
@@ -80,4 +80,6 @@ public class RobotContainer {
         //return new exampleAuto(s_Swerve);
         return new exampleAuto(s_Swerve);
     }
+
+    
 }
