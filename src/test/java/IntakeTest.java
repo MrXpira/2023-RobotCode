@@ -27,6 +27,7 @@ class IntakeTest {
   DoubleSolenoidSim m_simPiston;
   CommandScheduler scheduler;
 
+
   @BeforeEach // this method will run before each test
   void setup() {
     assert HAL.initialize(500, 0); // initialize the HAL, crash if failed
@@ -37,6 +38,7 @@ class IntakeTest {
             IntakeConstants.kPistonFwdChannel,
             IntakeConstants.kPistonRevChannel); // create our simulation solenoid
     scheduler = CommandScheduler.getInstance();
+    DriverStationSim.setEnabled(true);
   }
 
   @SuppressWarnings("PMD.SignatureDeclareThrowsException")
@@ -82,14 +84,10 @@ class IntakeTest {
 
   // @Test
   // void commandRetractTest() {
-  //   DriverStationSim.setEnabled(true);
-  //   m_intake.retractIntake().schedule();
+  //   m_intake.retractIntake()
   //   CommandScheduler.getInstance().run();
-  //   CommandScheduler.getInstance()
-  //   .onCommandInitialize(
-  //       command -> System.out.print("Command Init"));
+  
   //   assertEquals(DoubleSolenoid.Value.kReverse, m_simPiston.get());
   //   assertEquals(0, m_intake.getSpeedPercentage(), DELTA);
-
   // }
 }
