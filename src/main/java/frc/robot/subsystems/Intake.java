@@ -68,6 +68,7 @@ public class Intake extends SubsystemBase implements AutoCloseable{
   public CommandBase deployIntake(double speed) {
     return this.runOnce(() -> {
       this.deploy();
+      this.activate(speed);
     });
   }
 }

@@ -8,6 +8,7 @@ import edu.wpi.first.hal.HAL;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.simulation.DoubleSolenoidSim;
+import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj.simulation.PWMSim;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -71,6 +72,24 @@ class IntakeTest {
     assertEquals(DoubleSolenoid.Value.kForward, m_simPiston.get());
   }
 
- 
-  
+  // @Test
+  // void commandDeployTest() {
+  //   m_intake.deployIntake(.5).initialize();
+  //   CommandScheduler.getInstance().run();
+  //   assertEquals(DoubleSolenoid.Value.kForward, m_simPiston.get());
+  //   assertEquals(.5, m_intake.getSpeedPercentage(), DELTA);
+  // }
+
+  // @Test
+  // void commandRetractTest() {
+  //   DriverStationSim.setEnabled(true);
+  //   m_intake.retractIntake().schedule();
+  //   CommandScheduler.getInstance().run();
+  //   CommandScheduler.getInstance()
+  //   .onCommandInitialize(
+  //       command -> System.out.print("Command Init"));
+  //   assertEquals(DoubleSolenoid.Value.kReverse, m_simPiston.get());
+  //   assertEquals(0, m_intake.getSpeedPercentage(), DELTA);
+
+  // }
 }
