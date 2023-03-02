@@ -101,33 +101,33 @@ public class ArmSubsystem extends SubsystemBase {
       return degrees;
     }
 
-    private void moveArmToPosition(double targetPos) {
-      armMotorMaster.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, calculateFeedForward());
+    public Command moveArmToPosition(double targetPos) {
+      return runOnce(() -> armMotorMaster.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, calculateFeedForward()));
     }
 
     
   
-//     public Command stop() {
-//         return runOnce(
-//             () -> {
-//                 armMotorMaster.set(TalonFXControlMode.PercentOutput, 0);
-//                 armMotorFollower.set(TalonFXControlMode.PercentOutput, 0);
-//             }
-//         );
-//     }
+    public Command stop() {
+        return runOnce(
+            () -> {
+                armMotorMaster.set(TalonFXControlMode.PercentOutput, 0);
+                armMotorFollower.set(TalonFXControlMode.PercentOutput, 0);
+            }
+        );
+    }
 
 
 
-//     public Command setPosition(double position) {
-//         return runOnce(
-//             () -> {
-//                     manageMotion(position);
-//                     armMotorMaster.set(ControlMode.MotionMagic, position);
-//                     armMotorFollower.follow(armMotorMaster);
-//                     armMotorFollower.setInverted(InvertType.FollowMaster);
-//             }
-//         );
-//     }
+    // public Command setPosition(double position) {
+    //     return runOnce(
+    //         () -> {
+    //                 //manageMotion(position);
+    //                 moveArmToPosition();
+    //                 armMotorFollower.follow(armMotorMaster);
+    //                 armMotorFollower.setInverted(InvertType.FollowMaster);
+    //         }
+    //     );
+    // }
 
 //     public Command setVoltage(float voltage) {
 //         return runOnce(
