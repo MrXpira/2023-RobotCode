@@ -37,6 +37,7 @@ public final class Constants {
       public static final class WinchConstants {
         public static final int kwinchMotor = 16;
       }
+      
 
     public static final class ArmConstants {
         public static final int armMotorMasterID = 13;
