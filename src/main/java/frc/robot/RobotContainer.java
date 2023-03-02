@@ -94,6 +94,7 @@ public class RobotContainer {
     private void configureBindings() {
         /* Driver Buttons */
         d_Y.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+        o_A.onTrue(new InstantCommand(() -> armSubsystem.moveArmToPosition(12)));
 
     }
 
