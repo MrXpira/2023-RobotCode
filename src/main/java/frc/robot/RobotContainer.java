@@ -27,8 +27,9 @@ public class RobotContainer {
     
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
-    public final ArmSubsystem armSubsystem = new ArmSubsystem();
+    private final ArmSubsystem armSubsystem = new ArmSubsystem();
     private final Vision vision = new Vision();
+    private final ClawSubsystem clawSubsystem = new ClawSubsystem();
 
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
@@ -76,9 +77,10 @@ public class RobotContainer {
         );
 
         armSubsystem.setDefaultCommand(
-            armSubsystem.moveArm(driver.getLeftTriggerAxis())
+            armSubsystem.moveArm(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis())
         );
 
+        clawSubsystem.setDefaultCommand(clawSubsystem.moveClaw(operator.getLeftX()));
         // Configure the button bindings
         configureBindings();
     }
