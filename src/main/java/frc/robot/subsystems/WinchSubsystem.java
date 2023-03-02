@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
@@ -18,18 +19,14 @@ public class WinchSubsystem extends SubsystemBase
     private final int kPIDLoopIdx = 0;
     private final boolean kSensorPhase = true;
     //PID's are subject to change.
-    private final double kP = 0.15;
-    private final double kI = 0;
-    private final double kD = 1.0;
-    private final double kF = 0.0;
+    private static double kP = 0.15;
+    private static double kI = 0;
+    private static double kD = 1.0;
+    private static double kF = 0.0;
     private final double kPeakOutput = 0.20;
     private final int kTimeoutMs = 30;
 
-
-
-
     private static TalonFX m_winchMotor;
-
 
 
 
@@ -51,7 +48,6 @@ public class WinchSubsystem extends SubsystemBase
     private void configMotor(TalonFX motor) {
         motor.configFactoryDefault();
         motor.configSelectedFeedbackSensor(TalonFXFeedbackDevice.IntegratedSensor, kPIDLoopIdx, kTimeoutMs);
-
 
 
 
@@ -81,15 +77,25 @@ public class WinchSubsystem extends SubsystemBase
         motor.config_kP(kPIDLoopIdx, kP, kTimeoutMs);
         motor.config_kI(kPIDLoopIdx, kI, kTimeoutMs);
         motor.config_kD(kPIDLoopIdx, kD, kTimeoutMs);
+
+        motor.setNeutralMode(NeutralMode.Brake);
     }
 
 
     public Command moveWinch(double outputValue)
     {
         return this.run(()-> {
+            
             m_winchMotor.set(ControlMode.PercentOutput, outputValue);
-        });
-    };    
+            if (m_winchMotor.getStatorCurrent() < normalCurrent){
+                m_winchMotor.set(ControlMode.Current, normalCurrent - m_winchMotor.getStatorCurrent());
+            }
+            
+            
+        }      
+        );
+    }
+};    
 
 
-}
+
