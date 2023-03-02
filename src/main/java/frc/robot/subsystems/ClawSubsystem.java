@@ -51,11 +51,12 @@ public class ClawSubsystem extends SubsystemBase{
         motor.config_kD(kPIDLoopIdx, kD, kTimeoutMs);
     }
 //Voltages are subject to change
-    public static void openClaw() {
-         while (m_clawMotor.getStatorCurrent() < normalCurrent){
-            m_clawMotor.set(ControlMode.PercentOutput,-0.3);
-            System.out.println("Current: " + m_clawMotor.getStatorCurrent());
-         }
+    public Command openClaw(boolean isPressed) {
+      return this.run(() -> {
+        if (isPressed){
+          m_clawMotor.set(ControlMode.PercentOutput, -0.3);
+        } 
+      }); 
     }
 
     public static void holdBall() {

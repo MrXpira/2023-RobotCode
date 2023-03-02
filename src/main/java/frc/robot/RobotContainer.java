@@ -82,7 +82,8 @@ public class RobotContainer {
         );
 
         clawSubsystem.setDefaultCommand(clawSubsystem.moveClaw(operator.getLeftX()));
-
+        clawSubsystem.setDefaultCommand(clawSubsystem.openClaw(operator.getLeftBumperPressed()));
+        
         winchSubsystem.setDefaultCommand(winchSubsystem.moveWinch(operator.getRightY()));
         // Configure the button bindings
         configureBindings();
