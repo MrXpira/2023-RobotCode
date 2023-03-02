@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-
+import edu.wpi.first.wpilibj2.command.button.POVButton;
 import frc.robot.autos.*;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
@@ -21,7 +21,14 @@ import frc.robot.subsystems.*;
  */
 public class RobotContainer {
     /* Controllers */
-    private final Joystick driver = new Joystick(0);
+    private final XboxController driver = new XboxController(0);
+    private final XboxController operator = new XboxController(1);
+    
+    
+    /* Subsystems */
+    private final Swerve s_Swerve = new Swerve();
+    public final ArmSubsystem armSubsystem = new ArmSubsystem();
+    private final Vision vision = new Vision();
 
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
@@ -29,15 +36,33 @@ public class RobotContainer {
     private final int rotationAxis = XboxController.Axis.kRightX.value;
 
     /* Driver Buttons */
-    private final JoystickButton zeroGyro = new JoystickButton(driver, XboxController.Button.kY.value);
-    private final JoystickButton robotCentric = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+    private final JoystickButton d_Y = new JoystickButton(driver, XboxController.Button.kY.value);
+    private final JoystickButton d_A = new JoystickButton(driver, XboxController.Button.kA.value);
+    private final JoystickButton d_X = new JoystickButton(driver, XboxController.Button.kX.value);
+    private final JoystickButton d_B = new JoystickButton(driver, XboxController.Button.kB.value);
+    private final JoystickButton d_leftBumper = new JoystickButton(driver, XboxController.Button.kLeftBumper.value);
+    private final JoystickButton d_rightBumper = new JoystickButton(driver, XboxController.Button.kRightBumper.value);
+    private final POVButton d_povRight = new POVButton(driver, 90);
+    private final POVButton d_povDown = new POVButton(driver, 180);
+    private final POVButton d_povLeft = new POVButton(driver, 270);
 
-    /* Subsystems */
-    private final Swerve s_Swerve = new Swerve();
+    /* Operator Buttons */
+    private final JoystickButton o_rightBumper = new JoystickButton(operator, XboxController.Button.kRightBumper.value);
+    private final JoystickButton o_rightStick = new JoystickButton(operator, XboxController.Button.kRightStick.value);
+    private final JoystickButton o_leftBumper = new JoystickButton(operator, XboxController.Button.kLeftBumper.value);
+    private final JoystickButton o_leftStick = new JoystickButton(operator, XboxController.Button.kLeftStick.value);
+    private final JoystickButton o_start = new JoystickButton(operator, XboxController.Button.kStart.value);
+    private final JoystickButton o_back = new JoystickButton(operator, XboxController.Button.kBack.value);
+    private final JoystickButton o_A = new JoystickButton(operator, XboxController.Button.kA.value);
+    private final JoystickButton o_B = new JoystickButton(operator, XboxController.Button.kB.value);
+    private final JoystickButton o_X = new JoystickButton(operator, XboxController.Button.kX.value);
+    private final JoystickButton o_Y = new JoystickButton(operator, XboxController.Button.kY.value);
+    private final POVButton o_povUp = new POVButton(operator, 0);
+    private final POVButton o_povRight = new POVButton(operator, 90);
+    private final POVButton o_povDown = new POVButton(operator, 180);
+    private final POVButton o_povLeft = new POVButton(operator, 270);
 
     
-
-
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
         s_Swerve.setDefaultCommand(
@@ -46,13 +71,13 @@ public class RobotContainer {
                 () -> -driver.getRawAxis(translationAxis), 
                 () -> -driver.getRawAxis(strafeAxis), 
                 () -> -driver.getRawAxis(rotationAxis), 
-                () -> robotCentric.getAsBoolean()
+                () -> d_leftBumper.getAsBoolean()
             )
         );
 
-
-        PathPlannerServer.startServer(5811);
-
+        armSubsystem.setDefaultCommand(
+            armSubsystem.moveArm(driver.getLeftTriggerAxis())
+        );
 
         // Configure the button bindings
         configureBindings();
@@ -66,7 +91,8 @@ public class RobotContainer {
      */
     private void configureBindings() {
         /* Driver Buttons */
-        zeroGyro.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+        d_Y.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+
     }
 
 
@@ -76,9 +102,7 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        // An ExampleCommand will run in autonomous
-        //return new exampleAuto(s_Swerve);
-        return new exampleAuto(s_Swerve);
+        return new PathwithStops(s_Swerve,armSubsystem, vision);
     }
 
     
