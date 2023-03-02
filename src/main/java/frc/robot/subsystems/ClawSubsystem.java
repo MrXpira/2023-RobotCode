@@ -52,7 +52,7 @@ public class ClawSubsystem extends SubsystemBase{
     }
 //Voltages are subject to change
     public static void openClaw() {
-         while (m_clawMotor.getStatorCurrent() < 1){
+         while (m_clawMotor.getStatorCurrent() < normalCurrent){
             m_clawMotor.set(ControlMode.PercentOutput,-0.3);
             System.out.println("Current: " + m_clawMotor.getStatorCurrent());
          }
@@ -60,7 +60,7 @@ public class ClawSubsystem extends SubsystemBase{
 
     public static void holdBall() {
       
-        while(m_clawMotor.getStatorCurrent() < 1){
+        while(m_clawMotor.getStatorCurrent() < normalCurrent){
             m_clawMotor.set(ControlMode.PercentOutput, 0.3);
             System.out.println("Current: " + m_clawMotor.getStatorCurrent());
         }

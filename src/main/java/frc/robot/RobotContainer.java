@@ -30,6 +30,7 @@ public class RobotContainer {
     private final ArmSubsystem armSubsystem = new ArmSubsystem();
     private final Vision vision = new Vision();
     private final ClawSubsystem clawSubsystem = new ClawSubsystem();
+    private final WinchSubsystem winchSubsystem = new WinchSubsystem();
 
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
@@ -81,6 +82,8 @@ public class RobotContainer {
         );
 
         clawSubsystem.setDefaultCommand(clawSubsystem.moveClaw(operator.getLeftX()));
+
+        winchSubsystem.setDefaultCommand(winchSubsystem.moveWinch(operator.getRightY()));
         // Configure the button bindings
         configureBindings();
     }
