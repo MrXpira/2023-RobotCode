@@ -58,6 +58,7 @@ public class ClawSubsystem extends SubsystemBase{
       return this.run(() -> {
         if (isPressed && m_clawMotor.getStatorCurrent() <= normalCurrent+ 0.05){
           m_clawMotor.set(ControlMode.PercentOutput, -0.3);
+          System.out.println("Current: " + m_clawMotor.getStatorCurrent());
         } 
       }); 
     }
@@ -70,9 +71,12 @@ public class ClawSubsystem extends SubsystemBase{
         }
     }
     
-    public Command moveClaw(double outputValue){
+    public Command moveClaw(boolean isPressed){
         return this.run(() -> {
-            m_clawMotor.set(ControlMode.PercentOutput, outputValue);
+            if (isPressed && m_clawMotor.getStatorCurrent() <= normalCurrent + 0.05){
+                m_clawMotor.set(ControlMode.PercentOutput, 0.3);
+                System.out.println("Current: " + m_clawMotor.getStatorCurrent());
+            }
         }); 
     };
 

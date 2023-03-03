@@ -87,7 +87,7 @@ public class WinchSubsystem extends SubsystemBase
         return this.run(()-> {
             
             m_winchMotor.set(ControlMode.PercentOutput, outputValue);
-            if (m_winchMotor.getStatorCurrent() < normalCurrent){
+            if (m_winchMotor.getStatorCurrent() < normalCurrent - 0.05){
                 m_winchMotor.set(ControlMode.Current, normalCurrent - m_winchMotor.getStatorCurrent());
             }
             
