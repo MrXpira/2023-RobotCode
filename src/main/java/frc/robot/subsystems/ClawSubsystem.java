@@ -56,25 +56,31 @@ public class ClawSubsystem extends SubsystemBase{
         motor.setNeutralMode(NeutralMode.Brake);
     }
 //Voltages are subject to change
-    public Command openClaw(boolean isPressed) {
-      return this.run(() -> {
-        if (isPressed && m_clawMotor.getStatorCurrent() <= normalCurrent){
-          m_clawMotor.set(ControlMode.PercentOutput, -0.3);
-        } 
-      }); 
-    }
+    // public Command openClaw() {
+    //   return this.run(() -> {
+    //     m_clawMotor.set(ControlMode.PercentOutput, -.3);
+    //     this.en
+    //   }); 
+    // }
 
+    
     public static void holdBall() {
       
         while(m_clawMotor.getStatorCurrent() <= normalCurrent){
-            m_clawMotor.set(ControlMode.PercentOutput, 0.3);
+            m_clawMotor.set(ControlMode.PercentOutput, 0.5);
             System.out.println("Current: " + m_clawMotor.getStatorCurrent());
         }
     }
     
     public Command moveClaw(DoubleSupplier outputValue){
-        return this.run(() -> {
+        return this.runOnce(() -> {
             m_clawMotor.set(ControlMode.PercentOutput, outputValue.getAsDouble());
+        }); 
+    };
+
+    public Command moveClawToPosition(double outputValue){
+        return this.runOnce(() -> {
+            m_clawMotor.set(ControlMode.MotionMagic, outputValue);
         }); 
     };
 
