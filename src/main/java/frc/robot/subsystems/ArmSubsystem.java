@@ -23,7 +23,7 @@ public class ArmSubsystem extends SubsystemBase {
 
     private final TalonFX armMotorMaster = new TalonFX(Constants.ArmConstants.armMotorMasterID);
     private final TalonFX armMotorFollower = new TalonFX(Constants.ArmConstants.armMotorFollowerID);
-    private final DutyCycleEncoder encoder = new DutyCycleEncoder(0);
+    //private final DutyCycleEncoder encoder = new DutyCycleEncoder(0);
 
     public ArmSubsystem() {
        // encoder.setDistancePerRotation(360);
@@ -62,8 +62,6 @@ public class ArmSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Arm Follower Falcon Voltage", armMotorFollower.getMotorOutputVoltage());
         SmartDashboard.putNumber("Arm Master Falcon Voltage", armMotorMaster.getMotorOutputVoltage());
         SmartDashboard.putNumber("Arm Angle:", getArmCurrentAngleDegrees());
-        SmartDashboard.putBoolean("Encoder Connected", encoder.isConnected());
-        SmartDashboard.putNumber("Encoder Angle", encoder.getDistance () * 22/18);
         SmartDashboard.putNumber("Feed Forward", calculateFeedForward());
     }
 
@@ -82,7 +80,6 @@ public class ArmSubsystem extends SubsystemBase {
           double outputValue = firstTrigger.getAsDouble() - secondTrigger.getAsDouble();
           armMotorMaster.set(ControlMode.PercentOutput, outputValue);
           armMotorFollower.follow(armMotorMaster);
-          //SmartDashboard.putNumber("IsCOmmandRunning", outputValue);
           System.out.println("Entered Command: " + outputValue);
         }
       );
@@ -109,15 +106,6 @@ public class ArmSubsystem extends SubsystemBase {
       return degrees;
     }
 
-    // private double getArmCurrentAngleDegrees() {
-
-    //   // CHANGE TO REV ENCODER
-    //   int kMeasuredPosHorizontal = 0; //Position measured when arm is horizontal
-    //   double kTicksPerDegree = (2048 / 360) * 40 * (22/18); //Sensor is 48.89 : 1 with arm rotation MOVE TO CONSTANTS FOLDER
-    //   double currentPos = armMotorMaster.getSelectedSensorPosition();
-    //   double degrees = (currentPos - kMeasuredPosHorizontal) / kTicksPerDegree;
-    //   return degrees;
-    // }
     public Command moveArmToPosition(double targetPos) {
       return runOnce(() -> {
         armMotorMaster.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, calculateFeedForward());
@@ -134,55 +122,4 @@ public class ArmSubsystem extends SubsystemBase {
             }
         );
     }
-
-
-
-    // public Command setPosition(double position) {
-    //     return runOnce(
-    //         () -> {
-    //                 //manageMotion(position);
-    //                 moveArmToPosition();
-    //                 armMotorFollower.follow(armMotorMaster);
-    //                 armMotorFollower.setInverted(InvertType.FollowMaster);
-    //         }
-    //     );
-    // }
-
-//     public Command setVoltage(float voltage) {
-//         return runOnce(
-//             () -> {
-//                 armMotorMaster.set(ControlMode.PercentOutput, voltage);
-//                 armMotorFollower.follow(armMotorMaster);
-//                 armMotorFollower.setInverted(InvertType.FollowMaster);
-//             }
-//         );
-//     }
-    
-//     public void manageMotion(double targetPosition) {
-//         double currentPosition = armMotorMaster.getSelectedSensorPosition();
-    
-//         // going up
-//         if(currentPosition < targetPosition) {
-    
-//           // set accel and velocity for going up
-//           armMotorMaster.configMotionAcceleration(Constants.ArmConstants.CRUISE_VELOCITY_ACCEL_UP, 0);
-//           armMotorMaster.configMotionCruiseVelocity(Constants.ArmConstants.CRUISE_VELOCITY_ACCEL_UP, 0);
-    
-//           // select the up gains
-//           armMotorMaster.selectProfileSlot(0, 0);
-//           SmartDashboard.putBoolean("Going Up or Down", true);
-    
-//         } else {
-          
-//           // set accel and velocity for going down
-//           armMotorMaster.configMotionAcceleration(Constants.ArmConstants.CRUISE_VELOCITY_ACCEL_DOWN, 0);
-//           armMotorMaster.configMotionCruiseVelocity(Constants.ArmConstants.CRUISE_VELOCITY_ACCEL_DOWN, 0);
-    
-//           // select the down gains
-//           armMotorMaster.selectProfileSlot(1, 0);
-//           SmartDashboard.putBoolean("Going Up or Down", false);
-
-//         }
-    
-//       }
-}
+  }

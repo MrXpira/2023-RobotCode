@@ -107,10 +107,11 @@ public class WinchSubsystem extends SubsystemBase
         }
     }
 
+    public Command resetWinchPositionCommand() {
+        return this.runOnce(() -> resetWinchPosition());
+    }
 
-
-
-    public Command moveWinchToPosition(int i) {
-        return null;
+    public Command moveWinchToPosition(double targetPos) {
+        return this.run(() -> m_winchMotor.set(ControlMode.MotionMagic, targetPos));
     }
 }

@@ -10,18 +10,26 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 
 import com.ctre.phoenix.sensors.Pigeon2;
 
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class Swerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
     public SwerveModule[] mSwerveMods;
     public Pigeon2 gyro;
+
+    private SlewRateLimiter limit = new SlewRateLimiter(4000000);
+    
+
+    private PIDController forwardController;
 
     public Swerve() {
         gyro = new Pigeon2(Constants.Swerve.pigeonID);
@@ -106,6 +114,11 @@ public class Swerve extends SubsystemBase {
         return (Constants.Swerve.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getYaw()) : Rotation2d.fromDegrees(gyro.getYaw());
     }
 
+    public Rotation2d getPitch() {
+        return (Constants.Swerve.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getPitch()) : Rotation2d.fromDegrees(gyro.getPitch());
+    }
+
+
     public void resetModulesToAbsolute(){
         for(SwerveModule mod : mSwerveMods){
             mod.resetToAbsolute();
@@ -122,4 +135,17 @@ public class Swerve extends SubsystemBase {
             SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Velocity", mod.getState().speedMetersPerSecond);    
         }
     }
+
+    // public Command balanceRobot() {
+    //     return run(() -> {
+    //         Rotation2d currentAngle = getPitch();
+    //         output = MathUtil.clamp(forwardController.calculate(currentAngle,  0));
+    //         // if (getPitch() > Constants.BALANCETOLERANCE)) {
+    //         //     drive(new Translation2d(.2,0), 0, true, false);
+    //         // } else if (getPitch() < -Constants.BALANCETOLERANCE{
+    //         //     drive(new Translation2d(.2,0), 0, true, false);
+
+    //         // }
+    //     });
+    // }
 }
