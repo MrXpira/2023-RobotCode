@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
@@ -66,9 +68,9 @@ public class ClawSubsystem extends SubsystemBase{
         }
     }
     
-    public Command moveClaw(double outputValue){
+    public Command moveClaw(DoubleSupplier outputValue){
         return this.run(() -> {
-            m_clawMotor.set(ControlMode.PercentOutput, outputValue);
+            m_clawMotor.set(ControlMode.PercentOutput, outputValue.getAsDouble());
         }); 
     };
 

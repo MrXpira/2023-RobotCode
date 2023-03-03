@@ -26,6 +26,7 @@ public class ArmSubsystem extends SubsystemBase {
     private final DutyCycleEncoder encoder = new DutyCycleEncoder(0);
 
     public ArmSubsystem() {
+       // encoder.setDistancePerRotation(360);
         armMotorMaster.configFactoryDefault();
         armMotorMaster.setSelectedSensorPosition( 0);
 
@@ -43,13 +44,15 @@ public class ArmSubsystem extends SubsystemBase {
 
         armMotorMaster.setInverted(TalonFXInvertType.CounterClockwise);
         armMotorMaster.setNeutralMode(NeutralMode.Brake);
+
         armMotorFollower.setNeutralMode(NeutralMode.Brake);
+        armMotorFollower.setInverted(TalonFXInvertType.Clockwise);
 
-        if (encoder.isConnected()) {
-          encoder.getAbsolutePosition();
-        }
-       
-
+        // if (encoder.isConnected()) {
+        //   System.out.println("Falcon Encoders Set");
+        //   armMotorMaster.setSelectedSensorPosition((2048/8192) * encoder.getAbsolutePosition());
+        //   armMotorFollower.setSelectedSensorPosition((2048/8192) * encoder.getAbsolutePosition());
+        // }
     }
 
     @Override
@@ -60,7 +63,8 @@ public class ArmSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("Arm Master Falcon Voltage", armMotorMaster.getMotorOutputVoltage());
         SmartDashboard.putNumber("Arm Angle:", getArmCurrentAngleDegrees());
         SmartDashboard.putBoolean("Encoder Connected", encoder.isConnected());
-        SmartDashboard.putNumber("Encoder Angle", encoder.getAbsolutePosition());
+        SmartDashboard.putNumber("Encoder Angle", encoder.getDistance () * 22/18);
+        SmartDashboard.putNumber("Feed Forward", calculateFeedForward());
     }
 
     public Command resetSensor() {
@@ -72,10 +76,14 @@ public class ArmSubsystem extends SubsystemBase {
         );
     }
 
-    public Command moveArm(double outputValue) {
+    public Command moveArm(DoubleSupplier firstTrigger, DoubleSupplier secondTrigger) {
       return run(
         () -> {
+          double outputValue = firstTrigger.getAsDouble() - secondTrigger.getAsDouble();
           armMotorMaster.set(ControlMode.PercentOutput, outputValue);
+          armMotorFollower.follow(armMotorMaster);
+          //SmartDashboard.putNumber("IsCOmmandRunning", outputValue);
+          System.out.println("Entered Command: " + outputValue);
         }
       );
     }
@@ -94,18 +102,29 @@ public class ArmSubsystem extends SubsystemBase {
     private double getArmCurrentAngleDegrees() {
 
       // CHANGE TO REV ENCODER
-      int kMeasuredPosHorizontal = 840; //Position measured when arm is horizontal
-      double kTicksPerDegree = (2048 / 360); //Sensor is 48.89 : 1 with arm rotation MOVE TO CONSTANTS FOLDER
+      int kMeasuredPosHorizontal = 0; //Position measured when arm is horizontal
+      double kTicksPerDegree = (2048 / 360) * 40 * (22/18); //Sensor is 48.89 : 1 with arm rotation MOVE TO CONSTANTS FOLDER
       double currentPos = armMotorMaster.getSelectedSensorPosition();
       double degrees = (currentPos - kMeasuredPosHorizontal) / kTicksPerDegree;
       return degrees;
     }
 
-    public Command moveArmToPosition(double targetPos) {
-      return runOnce(() -> armMotorMaster.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, calculateFeedForward()));
-    }
+    // private double getArmCurrentAngleDegrees() {
 
-    
+    //   // CHANGE TO REV ENCODER
+    //   int kMeasuredPosHorizontal = 0; //Position measured when arm is horizontal
+    //   double kTicksPerDegree = (2048 / 360) * 40 * (22/18); //Sensor is 48.89 : 1 with arm rotation MOVE TO CONSTANTS FOLDER
+    //   double currentPos = armMotorMaster.getSelectedSensorPosition();
+    //   double degrees = (currentPos - kMeasuredPosHorizontal) / kTicksPerDegree;
+    //   return degrees;
+    // }
+    public Command moveArmToPosition(double targetPos) {
+      return runOnce(() -> {
+        armMotorMaster.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, calculateFeedForward());
+        armMotorFollower.follow(armMotorMaster);
+        System.out.println("Move to position command ran");
+      });
+    }
   
     public Command stop() {
         return runOnce(

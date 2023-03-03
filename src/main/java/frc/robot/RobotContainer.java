@@ -5,8 +5,10 @@ import com.pathplanner.lib.server.PathPlannerServer;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import frc.robot.autos.*;
@@ -78,12 +80,24 @@ public class RobotContainer {
         );
 
         armSubsystem.setDefaultCommand(
-            armSubsystem.moveArm(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis())
+            armSubsystem.moveArm(
+                () -> operator.getRawAxis(2) * .1,
+                () -> operator.getRawAxis(3) * .22
+            )
         );
 
-        clawSubsystem.setDefaultCommand(clawSubsystem.moveClaw(operator.getLeftX()));
+        clawSubsystem.setDefaultCommand(
+            clawSubsystem.moveClaw(
+                () -> operator.getRawAxis(1)
+            )
+        );
 
-        winchSubsystem.setDefaultCommand(winchSubsystem.moveWinch(operator.getRightY()));
+        winchSubsystem.setDefaultCommand(winchSubsystem.moveWinch(
+                () -> operator.getRawAxis(5)
+            )
+        );
+        
+        
         // Configure the button bindings
         configureBindings();
     }
@@ -96,8 +110,11 @@ public class RobotContainer {
      */
     private void configureBindings() {
         /* Driver Buttons */
+
         d_Y.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-        o_A.onTrue(new InstantCommand(() -> armSubsystem.moveArmToPosition(12)));
+        
+        //o_A.onTrue(new InstantCommand(() -> armSubsystem.moveArmToPosition(20000)));
+        //o_Y.onTrue(new SequentialCommandGroup(winchSubsystem.moveWinchToPosition(0), armSubsystem.moveArmToPosition(-90)));
 
     }
 
@@ -108,7 +125,8 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        return new PathwithStops(s_Swerve,armSubsystem, vision);
+        return null;
+        //return new PathwithStops(s_Swerve,armSubsystem, vision);
     }
 
     

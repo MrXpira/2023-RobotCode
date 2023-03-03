@@ -1,14 +1,19 @@
 package frc.robot.subsystems;
 
 
+import java.lang.module.ModuleDescriptor.Requires;
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
-
+import edu.wpi.first.networktables.DoubleSubscriber;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Constants.WinchConstants;
 
 
 
@@ -54,11 +59,10 @@ public class WinchSubsystem extends SubsystemBase
 
 
 
-
         motor.setSensorPhase(kSensorPhase);
 
 
-
+        motor.setNeutralMode(NeutralMode.Brake);
 
         motor.configNominalOutputForward(0, kTimeoutMs);
         motor.configNominalOutputReverse(0, kTimeoutMs);
@@ -84,12 +88,30 @@ public class WinchSubsystem extends SubsystemBase
     }
 
 
-    public Command moveWinch(double outputValue)
+    public Command moveWinch(DoubleSupplier outputValue)
+    {
+        return this.run(()-> {
+            m_winchMotor.set(ControlMode.PercentOutput, outputValue.getAsDouble());
+        });
+    };
+
+    private Command moveWinchPercent(double outputValue)
     {
         return this.run(()-> {
             m_winchMotor.set(ControlMode.PercentOutput, outputValue);
         });
-    };    
+    };
+
+    public void resetWinchPosition() {
+        if(moveWinchPercent(.5).until(() -> (m_winchMotor.getStatorCurrent() > WinchConstants.tripWinchCurrent)).isFinished()) {
+            m_winchMotor.setSelectedSensorPosition(0);
+        }
+    }
 
 
+
+
+    public Command moveWinchToPosition(int i) {
+        return null;
+    }
 }
