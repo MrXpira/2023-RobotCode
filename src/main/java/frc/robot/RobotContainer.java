@@ -81,10 +81,12 @@ public class RobotContainer {
             armSubsystem.moveArm(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis())
         );
 
-        clawSubsystem.setDefaultCommand(clawSubsystem.moveClaw(operator.getLeftX()));
+        clawSubsystem.setDefaultCommand(clawSubsystem.moveClaw(operator.getRightBumperPressed()));
         clawSubsystem.setDefaultCommand(clawSubsystem.openClaw(operator.getLeftBumperPressed()));
         
         winchSubsystem.setDefaultCommand(winchSubsystem.moveWinch(operator.getRightY()));
+        
+        
         // Configure the button bindings
         configureBindings();
     }
@@ -99,6 +101,7 @@ public class RobotContainer {
         /* Driver Buttons */
         d_Y.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
         o_A.onTrue(new InstantCommand(() -> armSubsystem.moveArmToPosition(12)));
+        d_leftBumper.toggleOnTrue(new AutoBalance(s_Swerve));
 
     }
 

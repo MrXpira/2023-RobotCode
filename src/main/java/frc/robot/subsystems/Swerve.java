@@ -128,7 +128,7 @@ public class Swerve extends SubsystemBase {
     
 
     public double getPitch(){
-        return ((int)((gyro.getPitch()- pitchOffset)* 100)/ 100f);
+        return -gyro.getPitch();
     }
 
     public Rotation2d getYaw() {
