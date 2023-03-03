@@ -38,6 +38,7 @@ public final class Constants {
         public static final int kwinchMotor = 16;
         public static double tripWinchCurrent;
       }
+      
 
     public static final class ArmConstants {
         public static final int armMotorMasterID = 13;

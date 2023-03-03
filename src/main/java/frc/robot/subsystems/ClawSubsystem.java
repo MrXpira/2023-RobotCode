@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXFeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
@@ -51,18 +52,21 @@ public class ClawSubsystem extends SubsystemBase{
         motor.config_kP(kPIDLoopIdx, kP, kTimeoutMs);
         motor.config_kI(kPIDLoopIdx, kI, kTimeoutMs);
         motor.config_kD(kPIDLoopIdx, kD, kTimeoutMs);
+
+        motor.setNeutralMode(NeutralMode.Brake);
     }
 //Voltages are subject to change
-    public static void openClaw() {
-         while (m_clawMotor.getStatorCurrent() < normalCurrent){
-            m_clawMotor.set(ControlMode.PercentOutput,-0.3);
-            System.out.println("Current: " + m_clawMotor.getStatorCurrent());
-         }
+    public Command openClaw(boolean isPressed) {
+      return this.run(() -> {
+        if (isPressed && m_clawMotor.getStatorCurrent() <= normalCurrent){
+          m_clawMotor.set(ControlMode.PercentOutput, -0.3);
+        } 
+      }); 
     }
 
     public static void holdBall() {
       
-        while(m_clawMotor.getStatorCurrent() < normalCurrent){
+        while(m_clawMotor.getStatorCurrent() <= normalCurrent){
             m_clawMotor.set(ControlMode.PercentOutput, 0.3);
             System.out.println("Current: " + m_clawMotor.getStatorCurrent());
         }
