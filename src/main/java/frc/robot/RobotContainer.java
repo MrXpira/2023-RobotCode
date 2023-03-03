@@ -2,11 +2,14 @@ package frc.robot;
 
 import com.pathplanner.lib.server.PathPlannerServer;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import frc.robot.autos.*;
@@ -63,7 +66,6 @@ public class RobotContainer {
     private final POVButton o_povRight = new POVButton(operator, 90);
     private final POVButton o_povDown = new POVButton(operator, 180);
     private final POVButton o_povLeft = new POVButton(operator, 270);
-
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer() {
@@ -78,15 +80,29 @@ public class RobotContainer {
         );
 
         armSubsystem.setDefaultCommand(
-            armSubsystem.moveArm(operator.getLeftTriggerAxis() - operator.getRightTriggerAxis())
+            armSubsystem.moveArm(
+                () -> operator.getRawAxis(3) * .22,
+                () -> operator.getRawAxis(2) * .1
+            )
         );
 
-        clawSubsystem.setDefaultCommand(clawSubsystem.moveClaw(operator.getRightBumperPressed()));
-        clawSubsystem.setDefaultCommand(clawSubsystem.openClaw(operator.getLeftBumperPressed()));
+
+
+        clawSubsystem.setDefaultCommand(
+            clawSubsystem.moveClaw(
+                () -> operator.getRawAxis(0)
+                
+            )
+        );
+
+        winchSubsystem.setDefaultCommand(winchSubsystem.moveWinch(
+                () -> operator.getRawAxis(5)
+            )
+        );
         
-        winchSubsystem.setDefaultCommand(winchSubsystem.moveWinch(operator.getRightY()));
-        
-        
+        winchSubsystem.resetWinchPositionCommand();
+
+
         // Configure the button bindings
         configureBindings();
     }
@@ -100,9 +116,11 @@ public class RobotContainer {
     private void configureBindings() {
         /* Driver Buttons */
         d_Y.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-        o_A.onTrue(new InstantCommand(() -> armSubsystem.moveArmToPosition(12)));
-        d_leftBumper.toggleOnTrue(new AutoBalance(s_Swerve));
-
+        
+        o_X.onTrue(winchSubsystem.resetWinchPositionCommand());
+        o_A.onTrue(new InstantCommand(() -> armSubsystem.moveArmToPosition(20000), armSubsystem));
+        //o_Y.onTrue(new SequentialCommandGroup(winchSubsystem.moveWinchToPosition(0), armSubsystem.moveArmToPosition(0)));
+        o_B.onTrue(clawSubsystem.moveClawToPosition(1000));
     }
 
 
