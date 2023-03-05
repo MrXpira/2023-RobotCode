@@ -25,25 +25,13 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.pathplanner.lib.PathPlannerTrajectory;
-import com.pathplanner.lib.auto.PIDConstants;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class Swerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
     public SwerveModule[] mSwerveMods;
     public Pigeon2 gyro;
-
-    private SlewRateLimiter limit = new SlewRateLimiter(4000000);
-    private ChassisSpeeds closedLoopSetpoint = new ChassisSpeeds();
 
     private PIDController forwardController;
     private PIDController pitchController;
@@ -170,10 +158,30 @@ public class Swerve extends SubsystemBase {
 
     public Command balanceRobot() {
         return this.run(() -> {
-            System.out.println("COMMAND RAN TO BALANCE");
+            System.out.println("Balancing");
             System.out.println(getPitch());
             drive(new Translation2d(forwardController.calculate(getPitch(),0),0),0, false, true);
         }).until(() -> getPitch() < .1 && getPitch() > -.1);
+    }
+
+    public Command moveOntoChargeStation() {
+        
+        return this.run(() -> {
+            System.out.println("Not on platform. Moving forward.");
+            drive(new Translation2d(.5,0),0, false, true);
+            System.out.println(getPitch());
+        }).until(() -> getPitch() > 5 || getPitch() > 5);
+    }
+    public Command balanceRobot(double originalAngle) {
+        System.out.println("Balancing");
+        return this.run(() -> moveOntoChargeStation())
+            .andThen(() -> {
+                System.out.println(getPitch());
+                drive(new Translation2d(forwardController.calculate(getPitch(),0),0),0, false, true);
+            }
+        )
+        .until(() -> getPitch() < .1 && getPitch() > -.1)
+        .andThen(lockWheels());
     }
 
     public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
@@ -187,9 +195,9 @@ public class Swerve extends SubsystemBase {
                 traj,
                 this::getPose,
                 Constants.Swerve.swerveKinematics, // SwerveDriveKinematics
-                new PIDController(Constants.AutoConstants.kPXController, 0.0, Constants.AutoConstants.kDXController), // PID constants to correct for translation error (used to create the X and Y PID controllers)
-                new PIDController(Constants.AutoConstants.kPThetaController, 0.0, Constants.AutoConstants.kDThetaController), // PID constants to correct for rotation error (used to create the rotation controller)
-                new PIDController(0,0,0),
+                new PIDController(Constants.AutoConstants.kPXController, 0.0, 0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+                new PIDController(Constants.AutoConstants.kPYController, 0.0, 0), // PID constants to correct for rotation error (used to create the rotation controller)
+                new PIDController(Constants.AutoConstants.kPThetaController,0,0),
                 this::setModuleStates, // Module states consumer used to output to the drive subsystem
                 true,     
                 this // The drive subsystem. Used to properly set the requirements of path following commands)
