@@ -15,6 +15,8 @@ import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.PathPlannerTrajectory.StopEvent;
 import com.pathplanner.lib.auto.PIDConstants;
 import com.pathplanner.lib.auto.SwerveAutoBuilder;
+import com.pathplanner.lib.commands.FollowPathWithEvents;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.PrintCommand;
@@ -31,10 +33,11 @@ ArrayList<PathPlannerTrajectory> pathGroup = (ArrayList<PathPlannerTrajectory>) 
 // This is just an example event map. It would be better to have a constant, global event map
 // in your code that will be used by all path following commands.
 HashMap<String, Command> eventMap = new HashMap<>();
-//eventMap.put("marker1", wristSubsystem.setVoltage(-.1f).andThen(new WaitCommand(1).andThen(wristSubsystem.setVoltage(0).andThen(wristSubsystem.resetPos()))));
+// eventMap.put("Balance", s_Swerve.balanceRobot());
 //eventMap.put("marker1", armSubsystem.setPosition(Constants.ArmConstants.SCORE_IN_HIGH_CONE).andThen(wristSubsystem.setPosition(Constants.WristConstants.SCORE_IN_HIGH_CONE).andThen(new WaitCommand(1.5)).andThen(collectionSubsystem.collectCone()).andThen(new PrintCommand("getName()").andThen(new WaitCommand(.5).andThen(armSubsystem.setPosition(0)).andThen(wristSubsystem.setPosition(0).andThen(collectionSubsystem.stopMotor()))))));
 //eventMap.put("intakeDown", armSubsystem.setPosition(Constants.ArmConstants.ACQUIRE_FROM_FLOOR).andThen(wristSubsystem.setPosition(Constants.WristConstants.ACQUIRE_FROM_FLOOR).andThen(collectionSubsystem.collectCube())));//.andThen(new WaitCommand(1.5)).andThen(collectionSubsystem.collectCone()).andThen(new PrintCommand("workplz").andThen(new WaitCommand(.5).andThen(armSubsystem.setPosition(0)).andThen(wristSubsystem.setPosition(0).andThen(collectionSubsystem.stopMotor()))))));
 //eventMap.put("home", armSubsystem.setPosition(25000).andThen(wristSubsystem.setPosition(Constants.WristConstants.HOME).andThen(armSubsystem.setPosition(Constants.ArmConstants.HOME))));//.andThen(new WaitCommand(1.5)).andThen(collectionSubsystem.collectCone()).andThen(new PrintCommand("workplz").andThen(new WaitCommand(.5).andThen(armSubsystem.setPosition(0)).andThen(wristSubsystem.setPosition(0).andThen(collectionSubsystem.stopMotor()))))));
+
 
 // Create the AutoBuilder. This only needs to be created once when robot code starts, not every time you want to create an auto command. A good place to put this is in RobotContainer along with your subsystems.
 SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
@@ -48,7 +51,6 @@ SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
     false, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
     s_Swerve // The drive subsystem. Used to properly set the requirements of path following commands
 );
-
     autoBuilder.fullAuto(pathGroup).schedule();
     }
 }

@@ -1,5 +1,8 @@
 package frc.robot;
 
+import com.pathplanner.lib.PathConstraints;
+import com.pathplanner.lib.PathPlanner;
+import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.server.PathPlannerServer;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -100,8 +103,7 @@ public class RobotContainer {
             )
         );
         
-        winchSubsystem.resetWinchPositionCommand();
-
+        //winchSubsystem.resetWinchPositionCommand();
 
         // Configure the button bindings
         configureBindings();
@@ -116,11 +118,16 @@ public class RobotContainer {
     private void configureBindings() {
         /* Driver Buttons */
         d_Y.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
+        d_A.whileTrue(s_Swerve.balanceRobot());
         
-        o_X.onTrue(winchSubsystem.resetWinchPositionCommand());
-        o_A.onTrue(new InstantCommand(() -> armSubsystem.moveArmToPosition(20000), armSubsystem));
+        //o_X.onTrue(winchSubsystem.resetWinchPosition());
+
+        //o_leftBumper.onTrue(winchSubsystem.moveWinchToPosition( 120000));
+
+        //o_A.whileTrue(armSubsystem.moveArmToPosition(30000));
+        //o_Y.onTrue(clawSubsystem.moveClawPercent(.5));
         //o_Y.onTrue(new SequentialCommandGroup(winchSubsystem.moveWinchToPosition(0), armSubsystem.moveArmToPosition(0)));
-        o_B.onTrue(clawSubsystem.moveClawToPosition(1000));
+        //o_B.onTrue(clawSubsystem.moveClawToPosition(1000));
     }
 
 
@@ -130,7 +137,9 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        return new PathwithStops(s_Swerve,armSubsystem, vision);
+        
+        return s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot()); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
+        //return new PathwithStops(s_Swerve,armSubsystem, vision);
     }
 
     

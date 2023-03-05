@@ -8,6 +8,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 
+import com.ctre.phoenix.CANifier.PinValues;
 import com.ctre.phoenix.sensors.Pigeon2;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -20,8 +21,13 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.auto.PIDConstants;
+import com.pathplanner.lib.commands.PPSwerveControllerCommand;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Twist2d;
@@ -37,9 +43,10 @@ public class Swerve extends SubsystemBase {
     public Pigeon2 gyro;
 
     private SlewRateLimiter limit = new SlewRateLimiter(4000000);
-    
+    private ChassisSpeeds closedLoopSetpoint = new ChassisSpeeds();
 
     private PIDController forwardController;
+    private PIDController pitchController;
 
     public Swerve() {
         gyro = new Pigeon2(Constants.Swerve.pigeonID);
@@ -59,6 +66,7 @@ public class Swerve extends SubsystemBase {
         Timer.delay(1.0);
         resetModulesToAbsolute();
 
+        forwardController = new PIDController(.02355, 0, 0.01);
         swerveOdometry = new SwerveDriveOdometry(Constants.Swerve.swerveKinematics, getYaw(), getModulePositions());
     }
 
@@ -130,8 +138,8 @@ public class Swerve extends SubsystemBase {
         return (Constants.Swerve.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getYaw()) : Rotation2d.fromDegrees(gyro.getYaw());
     }
 
-    public Rotation2d getPitch() {
-        return (Constants.Swerve.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getPitch()) : Rotation2d.fromDegrees(gyro.getPitch());
+    public double getPitch() {
+        return gyro.getPitch();
     }
 
 
@@ -150,18 +158,36 @@ public class Swerve extends SubsystemBase {
             SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Integrated", mod.getPosition().angle.getDegrees());
             SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Velocity", mod.getState().speedMetersPerSecond);    
         }
+
+        SmartDashboard.putNumber("Pitch", getPitch());
     }
 
-    // public Command balanceRobot() {
-    //     return run(() -> {
-    //         Rotation2d currentAngle = getPitch();
-    //         output = MathUtil.clamp(forwardController.calculate(currentAngle,  0));
-    //         // if (getPitch() > Constants.BALANCETOLERANCE)) {
-    //         //     drive(new Translation2d(.2,0), 0, true, false);
-    //         // } else if (getPitch() < -Constants.BALANCETOLERANCE{
-    //         //     drive(new Translation2d(.2,0), 0, true, false);
+    public Command balanceRobot() {
+        return this.run(() -> {
+            System.out.println("COMMAND RAN TO BALANCE");
+            System.out.println(getPitch());
+            drive(new Translation2d(forwardController.calculate(getPitch(),0),0),0, false, true);
+        }).until(() -> getPitch() < .1 && getPitch() > -.1);
+    }
 
-    //         // }
-    //     });
-    // }
+    public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
+        return new SequentialCommandGroup(
+            new InstantCommand(() -> {
+                if (isFirstPath) {
+                    this.resetOdometry(traj.getInitialHolonomicPose());
+                }
+            }),
+            new PPSwerveControllerCommand(
+                traj,
+                this::getPose,
+                Constants.Swerve.swerveKinematics, // SwerveDriveKinematics
+                new PIDController(Constants.AutoConstants.kPXController, 0.0, Constants.AutoConstants.kDXController), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+                new PIDController(Constants.AutoConstants.kPThetaController, 0.0, Constants.AutoConstants.kDThetaController), // PID constants to correct for rotation error (used to create the rotation controller)
+                new PIDController(0,0,0),
+                this::setModuleStates, // Module states consumer used to output to the drive subsystem
+                true,     
+                this // The drive subsystem. Used to properly set the requirements of path following commands)
+            )
+        );
+    }
 }

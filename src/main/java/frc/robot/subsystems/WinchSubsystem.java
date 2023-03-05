@@ -23,9 +23,9 @@ public class WinchSubsystem extends SubsystemBase
     private final int kPIDLoopIdx = 0;
     private final boolean kSensorPhase = true;
     //PID's are subject to change.
-    private static double kP = 0.15;
+    private static double kP = 2;
     private static double kI = 0;
-    private static double kD = 1.0;
+    private static double kD = 0;
     private static double kF = 0.0;
     private final double kPeakOutput = 0.20;
     private final int kTimeoutMs = 30;
@@ -96,22 +96,26 @@ public class WinchSubsystem extends SubsystemBase
     private Command moveWinchPercent(double outputValue)
     {
         return this.run(()-> {
-            
             m_winchMotor.set(ControlMode.PercentOutput, outputValue);
         });
     };
 
-    public void resetWinchPosition() {
-        if(moveWinchPercent(.5).until(() -> (m_winchMotor.getStatorCurrent() > WinchConstants.tripWinchCurrent)).isFinished()) {
-            m_winchMotor.setSelectedSensorPosition(0);
-        }
-    }
-
-    public Command resetWinchPositionCommand() {
-        return this.runOnce(() -> resetWinchPosition());
+    public Command resetWinchPosition() {
+        return moveWinchPercent(-.5).until(() -> (m_winchMotor.getStatorCurrent() > WinchConstants.tripWinchCurrent))
+        .andThen(() -> m_winchMotor.setSelectedSensorPosition(0));
     }
 
     public Command moveWinchToPosition(double targetPos) {
-        return this.run(() -> m_winchMotor.set(ControlMode.MotionMagic, targetPos));
+        return this.run(() -> {
+            System.out.println("COMMAND RAN");
+            m_winchMotor.set(ControlMode.MotionMagic, targetPos);
+        }
+        );
+    }
+    
+    @Override
+    public void periodic() {
+        // System.out.println("current: " + m_winchMotor.getStatorCurrent());
+        // System.out.println("Position: " + m_winchMotor.getSelectedSensorPosition());
     }
 }

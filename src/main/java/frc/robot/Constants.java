@@ -29,7 +29,6 @@ import java.util.TreeMap;
 
 public final class Constants {
     public static final double stickDeadband = 0.1;
-    public static final Rotation2d BALANCETOLERANCE = new Rotation2d();
 
     public static final class ClawConstants {
         public static final int kClawMotor = 15;
@@ -37,7 +36,7 @@ public final class Constants {
     
       public static final class WinchConstants {
         public static final int kwinchMotor = 16;
-        public static double tripWinchCurrent;
+        public static double tripWinchCurrent = 40;
       }
       
 
@@ -46,7 +45,7 @@ public final class Constants {
         public static final int armMotorFollowerID = 14;
         public static final int kPistonFwdChannel = 1;
         public static final int kPistonRevChannel = 2;
-        public static final double UP_kP = 0.5;
+        public static final double UP_kP = 5    ;
         public static final double UP_kI = 0;
         public static final double UP_kD = 0;
     }

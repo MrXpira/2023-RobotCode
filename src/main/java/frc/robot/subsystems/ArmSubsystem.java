@@ -80,7 +80,6 @@ public class ArmSubsystem extends SubsystemBase {
           double outputValue = firstTrigger.getAsDouble() - secondTrigger.getAsDouble();
           armMotorMaster.set(ControlMode.PercentOutput, outputValue);
           armMotorFollower.follow(armMotorMaster);
-          System.out.println("Entered Command: " + outputValue);
         }
       );
     }

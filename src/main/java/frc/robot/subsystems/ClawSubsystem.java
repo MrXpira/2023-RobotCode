@@ -78,10 +78,18 @@ public class ClawSubsystem extends SubsystemBase{
         }); 
     };
 
+
     public Command moveClawToPosition(double outputValue){
         return this.runOnce(() -> {
             m_clawMotor.set(ControlMode.MotionMagic, outputValue);
         }); 
+    };
+
+    public Command moveClawPercent(double outputValue)
+    {
+        return this.run(()-> {
+            m_clawMotor.set(ControlMode.PercentOutput, outputValue);
+        });
     };
 
     public double getClawPosition(){
