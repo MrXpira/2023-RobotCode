@@ -5,7 +5,9 @@ import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.pathplanner.lib.server.PathPlannerServer;
 
+import edu.wpi.first.hal.CANData;
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.wpilibj.CAN;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
@@ -34,9 +36,9 @@ public class RobotContainer {
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
     private final ArmSubsystem armSubsystem = new ArmSubsystem();
-    private final Vision vision = new Vision();
     private final ClawSubsystem clawSubsystem = new ClawSubsystem();
     private final WinchSubsystem winchSubsystem = new WinchSubsystem();
+    private final CANdleSubsystem candleSubsystem = new CANdleSubsystem();
 
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
@@ -119,7 +121,13 @@ public class RobotContainer {
         /* Driver Buttons */
         d_Y.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
         d_A.whileTrue(s_Swerve.lockWheels());
+
+        // Test Balancing //
+
+        d_B.whileTrue(s_Swerve.moveOntoChargeStation());
         d_X.whileTrue(s_Swerve.balanceRobot());
+
+    
         
         //o_X.onTrue(winchSubsystem.resetWinchPosition());
 

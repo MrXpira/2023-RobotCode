@@ -2,7 +2,6 @@ package frc.robot.autos;
 
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import frc.robot.subsystems.Vision;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.Swerve;
 
@@ -24,7 +23,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 public class PathwithStops extends SequentialCommandGroup {
-    public PathwithStops(Swerve s_Swerve,ArmSubsystem armSubsystem, Vision limelightSubsystem){
+    public PathwithStops(Swerve s_Swerve,ArmSubsystem armSubsystem){
 
 // This will load the file "FullAuto.path" and generate it with a max velocity of 4 m/s and a max acceleration of 3 m/s^2
 // for every path in the group
@@ -44,8 +43,8 @@ SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
     s_Swerve::getPose, // Pose2d supplier
     s_Swerve::resetOdometry, // Pose2d consumer, used to reset odometry at the beginning of auto
     Constants.Swerve.swerveKinematics, // SwerveDriveKinematics
-    new PIDConstants(Constants.AutoConstants.kPXController, 0.0, Constants.AutoConstants.kDXController), // PID constants to correct for translation error (used to create the X and Y PID controllers)
-    new PIDConstants(Constants.AutoConstants.kPThetaController, 0.0, Constants.AutoConstants.kDThetaController), // PID constants to correct for rotation error (used to create the rotation controller)
+    new PIDConstants(Constants.AutoConstants.kPXController, 0.0, 0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+    new PIDConstants(Constants.AutoConstants.kPThetaController, 0.0, 0), // PID constants to correct for rotation error (used to create the rotation controller)
     s_Swerve::setModuleStates, // Module states consumer used to output to the drive subsystem
     eventMap,
     false, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
