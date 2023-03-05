@@ -118,7 +118,8 @@ public class RobotContainer {
     private void configureBindings() {
         /* Driver Buttons */
         d_Y.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
-        d_A.whileTrue(s_Swerve.balanceRobot());
+        d_A.whileTrue(s_Swerve.lockWheels());
+        d_X.whileTrue(s_Swerve.balanceRobot());
         
         //o_X.onTrue(winchSubsystem.resetWinchPosition());
 

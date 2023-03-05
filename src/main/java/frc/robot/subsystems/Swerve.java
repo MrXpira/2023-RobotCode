@@ -89,11 +89,7 @@ public class Swerve extends SubsystemBase {
         for(SwerveModule mod : mSwerveMods){
             mod.setDesiredState(swerveModuleStates[mod.moduleNumber], isOpenLoop);
         }
-    }    
-
-    public void runVelocity(ChassisSpeeds speeds) {
-        closedLoopSetpoint = speeds;
-      }
+    }
 
     /* Used by SwerveControllerCommand in Auto */
     public void setModuleStates(SwerveModuleState[] desiredStates) {
@@ -132,8 +128,6 @@ public class Swerve extends SubsystemBase {
         gyro.setYaw(0);
     }
 
-    
-
     public Rotation2d getYaw() {
         return (Constants.Swerve.invertGyro) ? Rotation2d.fromDegrees(360 - gyro.getYaw()) : Rotation2d.fromDegrees(gyro.getYaw());
     }
@@ -161,6 +155,18 @@ public class Swerve extends SubsystemBase {
 
         SmartDashboard.putNumber("Pitch", getPitch());
     }
+
+    public Command lockWheels() {
+        return this.run(() -> {
+            SwerveModuleState[] desiredState = {
+                new SwerveModuleState(0.0,new Rotation2d(-45)),
+                new SwerveModuleState(0.0,new Rotation2d(45)),
+                new SwerveModuleState(0.0,new Rotation2d(45)),
+                new SwerveModuleState(0.0,new Rotation2d(-45))
+            };
+            setModuleStates(desiredState);
+        });
+    }  
 
     public Command balanceRobot() {
         return this.run(() -> {
