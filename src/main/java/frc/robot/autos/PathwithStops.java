@@ -2,7 +2,6 @@ package frc.robot.autos;
 
 import frc.robot.Constants;
 import frc.robot.RobotContainer;
-import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.Swerve;
 
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 
 public class PathwithStops extends SequentialCommandGroup {
-    public PathwithStops(Swerve s_Swerve,ArmSubsystem armSubsystem){
+    public PathwithStops(Swerve s_Swerve){
 
 // This will load the file "FullAuto.path" and generate it with a max velocity of 4 m/s and a max acceleration of 3 m/s^2
 // for every path in the group

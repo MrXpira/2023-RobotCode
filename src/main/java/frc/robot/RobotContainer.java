@@ -35,10 +35,8 @@ public class RobotContainer {
     
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
-    private final ArmSubsystem armSubsystem = new ArmSubsystem();
-    private final ClawSubsystem clawSubsystem = new ClawSubsystem();
-    private final WinchSubsystem winchSubsystem = new WinchSubsystem();
     private final CANdleSubsystem candleSubsystem = new CANdleSubsystem();
+    private final Shooter shooter = new Shooter();
 
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
@@ -84,28 +82,9 @@ public class RobotContainer {
             )
         );
 
-        armSubsystem.setDefaultCommand(
-            armSubsystem.moveArm(
-                () -> operator.getRawAxis(3) * .22,
-                () -> operator.getRawAxis(2) * .1
-            )
+        shooter.setDefaultCommand(
+            shooter.defaultState()
         );
-
-
-
-        clawSubsystem.setDefaultCommand(
-            clawSubsystem.moveClaw(
-                () -> operator.getRawAxis(0)
-                
-            )
-        );
-
-        winchSubsystem.setDefaultCommand(winchSubsystem.moveWinch(
-                () -> operator.getRawAxis(5)
-            )
-        );
-        
-        //winchSubsystem.resetWinchPositionCommand();
 
         // Configure the button bindings
         configureBindings();
@@ -126,8 +105,9 @@ public class RobotContainer {
 
         d_B.whileTrue(s_Swerve.moveOntoChargeStation());
         d_X.whileTrue(s_Swerve.balanceRobot());
-
-    
+        d_leftBumper.whileTrue(shooter.intakeCube());
+        d_rightBumper.whileTrue(shooter.shootHigh());
+        
         
         //o_X.onTrue(winchSubsystem.resetWinchPosition());
 
@@ -147,8 +127,9 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         
-        return s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot()); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
+        //return s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot()); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
         //return new PathwithStops(s_Swerve,armSubsystem, vision);
+        return new EventAutoTest(s_Swerve);
     }
 
     

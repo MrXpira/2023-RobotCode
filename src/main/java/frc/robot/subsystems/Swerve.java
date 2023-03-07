@@ -8,17 +8,23 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 
-import com.ctre.phoenix.CANifier.PinValues;
+import java.util.Optional;
+
+import org.photonvision.EstimatedRobotPose;
+import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonUtils;
+
 import com.ctre.phoenix.sensors.Pigeon2;
 
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -32,11 +38,24 @@ public class Swerve extends SubsystemBase {
     public SwerveDriveOdometry swerveOdometry;
     public SwerveModule[] mSwerveMods;
     public Pigeon2 gyro;
+    
+    private final Field2d m_fieldSim = new Field2d();
+    public PhotonCameraWrapper pcw;
+
+    /*
+     * Here we use DifferentialDrivePoseEstimator so that we can fuse odometry
+     * readings. The
+     * numbers used below are robot specific, and should be tuned.
+     */
+    private final SwerveDrivePoseEstimator m_poseEstimator =
+            new SwerveDrivePoseEstimator(
+                    Constants.Swerve.swerveKinematics, getYaw(), getModulePositions(), new Pose2d());
 
     private PIDController forwardController;
-    private PIDController pitchController;
 
     public Swerve() {
+        pcw = new PhotonCameraWrapper();
+
         gyro = new Pigeon2(Constants.Swerve.pigeonID);
         gyro.configFactoryDefault();
         zeroGyro();
@@ -56,6 +75,29 @@ public class Swerve extends SubsystemBase {
 
         forwardController = new PIDController(.02355, 0, 0.01);
         swerveOdometry = new SwerveDriveOdometry(Constants.Swerve.swerveKinematics, getYaw(), getModulePositions());
+
+        SmartDashboard.putData("Field", m_fieldSim);
+    }
+
+    /** Updates the field-relative position. */
+    public void updateOdometry() {
+        m_poseEstimator.update(
+                getYaw(), getModulePositions());
+
+        Optional<EstimatedRobotPose> result =
+                pcw.getEstimatedGlobalPose(m_poseEstimator.getEstimatedPosition());
+
+        if (result.isPresent()) {
+            EstimatedRobotPose camPose = result.get();
+            m_poseEstimator.addVisionMeasurement(
+                    camPose.estimatedPose.toPose2d(), camPose.timestampSeconds);
+            m_fieldSim.getObject("Cam Est Pos").setPose(camPose.estimatedPose.toPose2d());
+        } else {
+            // move it way off the screen to make it disappear
+            m_fieldSim.getObject("Cam Est Pos").setPose(new Pose2d(-100, -100, new Rotation2d()));
+        }
+
+        m_fieldSim.setRobotPose(m_poseEstimator.getEstimatedPosition());
     }
 
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
@@ -184,6 +226,61 @@ public class Swerve extends SubsystemBase {
         .andThen(lockWheels());
     }
 
+    public Command turnTowardsTarget() {
+        final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(24);
+        final double TARGET_HEIGHT_METERS = Units.feetToMeters(5);
+        // Angle between horizontal and the camera.
+        final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(0);
+
+        // How far from the target we want to be
+        final double GOAL_RANGE_METERS = Units.feetToMeters(3);
+
+        // Change this to match the name of your camera
+        PhotonCamera camera = new PhotonCamera("photonvision");
+
+
+        // PID constants should be tuned per robot
+        final double LINEAR_P = 0.1;
+        final double LINEAR_D = 0.0;
+        PIDController forwardController = new PIDController(LINEAR_P, 0, LINEAR_D);
+
+        final double ANGULAR_P = 0.1;
+        final double ANGULAR_D = 0.0;
+        PIDController turnController = new PIDController(ANGULAR_P, 0, ANGULAR_D);
+          
+        return this.run(() -> {
+            
+            double forwardSpeed;
+            double rotationSpeed;
+
+            var result = camera.getLatestResult();
+
+            if (result.hasTargets()) {
+            // First calculate range
+            double range =
+                    PhotonUtils.calculateDistanceToTargetMeters(
+                            CAMERA_HEIGHT_METERS,
+                            TARGET_HEIGHT_METERS,
+                            CAMERA_PITCH_RADIANS,
+                            Units.degreesToRadians(result.getBestTarget().getPitch()));
+
+            // Use this range as the measurement we give to the PID controller.
+            // -1.0 required to ensure positive PID controller effort _increases_ range
+            forwardSpeed = -forwardController.calculate(range, GOAL_RANGE_METERS);
+
+            // Also calculate angular power
+            // -1.0 required to ensure positive PID controller effort _increases_ yaw
+            rotationSpeed = -turnController.calculate(result.getBestTarget().getYaw(), 0);
+            } else {
+                // If we have no targets, stay still.
+                forwardSpeed = 0;
+                rotationSpeed = 0;
+            }
+
+            drive(new Translation2d(forwardSpeed,0),rotationSpeed, false, true);
+        });
+    }
+
     public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
         return new SequentialCommandGroup(
             new InstantCommand(() -> {
@@ -204,4 +301,6 @@ public class Swerve extends SubsystemBase {
             )
         );
     }
+
+
 }
