@@ -30,13 +30,36 @@ public final class Constants {
     public static final class ShooterConstants {
         public static final int motorTopID = 20;
         public static final int motorBottomID = 21;
+        public static final int rotateMotor = 22;
+        public static final int rotateMotorFollower = 23;
 
-        public static final double highGoalVelocityTopMotor = 1000;
-        public static final double highGoalVelocityBottomMotor = 1000;
+        public static final double highGoalVelocityTopMotor = .97;
+        public static final double highGoalVelocityBottomMotor = 1;
 
-        public static final double bottomGoalVelocityTopMotor = 100;
-        public static final double bottomGoalVelocityBottomMotor = 100;
+        public static final double midGoalVelocityBottomMotor = .75;
+        public static final double midGoalVelocityTopMotor = .75;
 
+        public static final double bottomGoalVelocityTopMotor = .25;
+        public static final double bottomGoalVelocityBottomMotor = .25
+        ;
+
+        // public static final double highGoalVelocityTopMotor = 30;
+        // public static final double highGoalVelocityBottomMotor = 30;
+
+        // public static final double midGoalVelocityBottomMotor = .75;
+        // public static final double midGoalVelocityTopMotor = .75;
+
+        // public static final double bottomGoalVelocityTopMotor = .2;
+        // public static final double bottomGoalVelocityBottomMotor = .2;
+
+
+        public static final double kP = .5;//.5;
+        public static final double kI = 0;
+        public static final double kD = 0.001;//.009;
+
+        public static final int kTimeoutMs = 0;
+        public static final int kPIDLoopIdx = 0;
+        public static final double intakeVelocity = .32;
     }
 
     public static class VisionConstants {
@@ -104,7 +127,7 @@ public final class Constants {
         public static final double angleKF = chosenModule.angleKF;
 
         /* Drive Motor PID Values */
-        public static final double driveKP = 0.01; //TODO: This must be tuned to specific robot
+        public static final double driveKP = 0.0; //TODO: This must be tuned to specific robot
         public static final double driveKI = 0.0;
         public static final double driveKD = 0.0;
         public static final double driveKF = 0.0;
@@ -117,7 +140,7 @@ public final class Constants {
 
         /* Swerve Profiling Values */
         /** Meters per Second */
-        public static final double maxSpeed = 2.3; //TODO: This must be tuned to specific robot
+        public static final double maxSpeed = 7; //TODO: This must be tuned to specific robot
         /** Radians per Second */
         public static final double maxAngularVelocity = 4; //TODO: This must be tuned to specific robot
 
@@ -183,4 +206,6 @@ public final class Constants {
             new TrapezoidProfile.Constraints(
                 kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
     }
+
+    
 }
