@@ -95,5 +95,36 @@
       }
     }
   ],
-  "markers": []
+  "markers": [
+    {
+      "position": 0.0,
+      "names": [
+        "shootHigh"
+      ]
+    },
+    {
+      "position": 0.8454545454545455,
+      "names": [
+        "intake"
+      ]
+    },
+    {
+      "position": 1.2000000000000013,
+      "names": [
+        "rest"
+      ]
+    },
+    {
+      "position": 1.909090909090907,
+      "names": [
+        "shootHigh"
+      ]
+    },
+    {
+      "position": 3.0,
+      "names": [
+        "balance"
+      ]
+    }
+  ]
 }

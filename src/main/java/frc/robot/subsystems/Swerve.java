@@ -47,11 +47,10 @@ public class Swerve extends SubsystemBase {
      * readings. The
      * numbers used below are robot specific, and should be tuned.
      */
-    private final SwerveDrivePoseEstimator m_poseEstimator =
-            new SwerveDrivePoseEstimator(
-                    Constants.Swerve.swerveKinematics, getYaw(), getModulePositions(), new Pose2d());
-
+    
     private PIDController forwardController;
+    private final SwerveDrivePoseEstimator m_poseEstimator;
+
 
     public Swerve() {
         pcw = new PhotonCameraWrapper();
@@ -59,6 +58,8 @@ public class Swerve extends SubsystemBase {
         gyro = new Pigeon2(Constants.Swerve.pigeonID);
         gyro.configFactoryDefault();
         zeroGyro();
+
+        
 
         mSwerveMods = new SwerveModule[] {
             new SwerveModule(0, Constants.Swerve.Mod0.constants),
@@ -73,10 +74,14 @@ public class Swerve extends SubsystemBase {
         Timer.delay(1.0);
         resetModulesToAbsolute();
 
-        forwardController = new PIDController(.02355, 0, 0.01);
+        forwardController = new PIDController(.0169, 0, 0.01);
         swerveOdometry = new SwerveDriveOdometry(Constants.Swerve.swerveKinematics, getYaw(), getModulePositions());
 
         SmartDashboard.putData("Field", m_fieldSim);
+        m_poseEstimator =
+            new SwerveDrivePoseEstimator(
+                    Constants.Swerve.swerveKinematics, getYaw(), getModulePositions(), new Pose2d());
+
     }
 
     /** Updates the field-relative position. */
@@ -187,12 +192,14 @@ public class Swerve extends SubsystemBase {
     }
 
     public Command lockWheels() {
+        
         return this.run(() -> {
+            System.out.println("Locking Wheels");
             SwerveModuleState[] desiredState = {
-                new SwerveModuleState(0.0,new Rotation2d(-45)),
-                new SwerveModuleState(0.0,new Rotation2d(45)),
-                new SwerveModuleState(0.0,new Rotation2d(45)),
-                new SwerveModuleState(0.0,new Rotation2d(-45))
+                new SwerveModuleState(0, new Rotation2d(Math.PI / 4)),
+                new SwerveModuleState(0, new Rotation2d(-Math.PI / 4)),
+                new SwerveModuleState(0, new Rotation2d(-Math.PI / 4)),
+                new SwerveModuleState(0, new Rotation2d(Math.PI / 4))
             };
             setModuleStates(desiredState);
         });
@@ -206,6 +213,15 @@ public class Swerve extends SubsystemBase {
         }).until(() -> getPitch() < .1 && getPitch() > -.1);
     }
 
+    public Command reverseBalance() {
+        return this.run(() -> {
+            System.out.println("Balancing");
+            System.out.println(getPitch());
+            drive(new Translation2d(-forwardController.calculate(getPitch(),0),0),0, false, true);
+        }).until(() -> getPitch() < .1 && getPitch() > -.1);
+    }
+
+
     public Command moveOntoChargeStation() {
         
         return this.run(() -> {
@@ -214,6 +230,17 @@ public class Swerve extends SubsystemBase {
             System.out.println(getPitch());
         }).until(() -> getPitch() > 5 || getPitch() > 5);
     }
+
+    public Command moveRevOntoChargeStation() {
+        
+        return this.run(() -> {
+            System.out.println("Not on platform. Moving forward.");
+            drive(new Translation2d(.5,0),0, false, true);
+            System.out.println(getPitch());
+        }).until(() -> getPitch() > 5 || getPitch() > 5);
+    }
+
+
     public Command balanceRobot(double originalAngle) {
         System.out.println("Balancing");
         return this.run(() -> moveOntoChargeStation())
@@ -226,60 +253,60 @@ public class Swerve extends SubsystemBase {
         .andThen(lockWheels());
     }
 
-    public Command turnTowardsTarget() {
-        final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(24);
-        final double TARGET_HEIGHT_METERS = Units.feetToMeters(5);
-        // Angle between horizontal and the camera.
-        final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(0);
+    // public Command turnTowardsTarget() {
+    //     final double CAMERA_HEIGHT_METERS = Units.inchesToMeters(24);
+    //     final double TARGET_HEIGHT_METERS = Units.feetToMeters(5);
+    //     // Angle between horizontal and the camera.
+    //     final double CAMERA_PITCH_RADIANS = Units.degreesToRadians(0);
 
-        // How far from the target we want to be
-        final double GOAL_RANGE_METERS = Units.feetToMeters(3);
+    //     // How far from the target we want to be
+    //     final double GOAL_RANGE_METERS = Units.feetToMeters(3);
 
-        // Change this to match the name of your camera
-        PhotonCamera camera = new PhotonCamera("photonvision");
+    //     // Change this to match the name of your camera
+    //     PhotonCamera camera = new PhotonCamera("photonvision");
 
 
-        // PID constants should be tuned per robot
-        final double LINEAR_P = 0.1;
-        final double LINEAR_D = 0.0;
-        PIDController forwardController = new PIDController(LINEAR_P, 0, LINEAR_D);
+    //     // PID constants should be tuned per robot
+    //     final double LINEAR_P = 0.1;
+    //     final double LINEAR_D = 0.0;
+    //     PIDController forwardController = new PIDController(LINEAR_P, 0, LINEAR_D);
 
-        final double ANGULAR_P = 0.1;
-        final double ANGULAR_D = 0.0;
-        PIDController turnController = new PIDController(ANGULAR_P, 0, ANGULAR_D);
+    //     final double ANGULAR_P = 0.1;
+    //     final double ANGULAR_D = 0.0;
+    //     PIDController turnController = new PIDController(ANGULAR_P, 0, ANGULAR_D);
           
-        return this.run(() -> {
+    //     return this.run(() -> {
             
-            double forwardSpeed;
-            double rotationSpeed;
+    //         double forwardSpeed;
+    //         double rotationSpeed;
 
-            var result = camera.getLatestResult();
+    //         var result = camera.getLatestResult();
 
-            if (result.hasTargets()) {
-            // First calculate range
-            double range =
-                    PhotonUtils.calculateDistanceToTargetMeters(
-                            CAMERA_HEIGHT_METERS,
-                            TARGET_HEIGHT_METERS,
-                            CAMERA_PITCH_RADIANS,
-                            Units.degreesToRadians(result.getBestTarget().getPitch()));
+    //         if (result.hasTargets()) {
+    //         // First calculate range
+    //         double range =
+    //                 PhotonUtils.calculateDistanceToTargetMeters(
+    //                         CAMERA_HEIGHT_METERS,
+    //                         TARGET_HEIGHT_METERS,
+    //                         CAMERA_PITCH_RADIANS,
+    //                         Units.degreesToRadians(result.getBestTarget().getPitch()));
 
-            // Use this range as the measurement we give to the PID controller.
-            // -1.0 required to ensure positive PID controller effort _increases_ range
-            forwardSpeed = -forwardController.calculate(range, GOAL_RANGE_METERS);
+    //         // Use this range as the measurement we give to the PID controller.
+    //         // -1.0 required to ensure positive PID controller effort _increases_ range
+    //         forwardSpeed = -forwardController.calculate(range, GOAL_RANGE_METERS);
 
-            // Also calculate angular power
-            // -1.0 required to ensure positive PID controller effort _increases_ yaw
-            rotationSpeed = -turnController.calculate(result.getBestTarget().getYaw(), 0);
-            } else {
-                // If we have no targets, stay still.
-                forwardSpeed = 0;
-                rotationSpeed = 0;
-            }
+    //         // Also calculate angular power
+    //         // -1.0 required to ensure positive PID controller effort _increases_ yaw
+    //         rotationSpeed = -turnController.calculate(result.getBestTarget().getYaw(), 0);
+    //         } else {
+    //             // If we have no targets, stay still.
+    //             forwardSpeed = 0;
+    //             rotationSpeed = 0;
+    //         }
 
-            drive(new Translation2d(forwardSpeed,0),rotationSpeed, false, true);
-        });
-    }
+    //         drive(new Translation2d(forwardSpeed,0),rotationSpeed, false, true);
+    //     });
+    // }
 
     public Command followTrajectoryCommand(PathPlannerTrajectory traj, boolean isFirstPath) {
         return new SequentialCommandGroup(

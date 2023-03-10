@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import frc.robot.autos.*;
@@ -82,9 +83,12 @@ public class RobotContainer {
             )
         );
 
-        shooter.setDefaultCommand(
-            shooter.defaultState()
-        );
+        // shooter.setDefaultCommand(
+        //     shooter.defaultState()
+        // );
+
+
+        candleSubsystem.fireAnim();        
 
         // Configure the button bindings
         configureBindings();
@@ -100,23 +104,21 @@ public class RobotContainer {
         /* Driver Buttons */
         d_Y.onTrue(new InstantCommand(() -> s_Swerve.zeroGyro()));
         d_A.whileTrue(s_Swerve.lockWheels());
-
-        // Test Balancing //
-
         d_B.whileTrue(s_Swerve.moveOntoChargeStation());
         d_X.whileTrue(s_Swerve.balanceRobot());
-        d_leftBumper.whileTrue(shooter.intakeCube());
-        d_rightBumper.whileTrue(shooter.shootHigh());
-        
-        
-        //o_X.onTrue(winchSubsystem.resetWinchPosition());
 
-        //o_leftBumper.onTrue(winchSubsystem.moveWinchToPosition( 120000));
 
-        //o_A.whileTrue(armSubsystem.moveArmToPosition(30000));
-        //o_Y.onTrue(clawSubsystem.moveClawPercent(.5));
-        //o_Y.onTrue(new SequentialCommandGroup(winchSubsystem.moveWinchToPosition(0), armSubsystem.moveArmToPosition(0)));
-        //o_B.onTrue(clawSubsystem.moveClawToPosition(1000));
+
+        // o_rightBumper.whileTrue(shooter.moveArmToPosition(1500));
+        // o_leftBumper.whileTrue(shooter.shoot(-.3,-.3)).whileFalse(shooter.stopShooter());
+        // o_rightStick.whileTrue(shooter.stopShooter());
+
+        // o_leftStick.whileTrue(shooter.resetPos());
+        // o_A.whileTrue(shooter.moveArmToPosition(6000));
+        o_Y.whileTrue(shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor)); // Shoot high
+        o_A.whileTrue(shooter.shoot(Constants.ShooterConstants.bottomGoalVelocityTopMotor, Constants.ShooterConstants.bottomGoalVelocityBottomMotor)); // Shoot low
+        o_B.whileTrue(shooter.shoot(Constants.ShooterConstants.midGoalVelocityTopMotor, Constants.ShooterConstants.midGoalVelocityBottomMotor)); // Shoot medium
+        o_X.whileTrue(shooter.intake());
     }
 
 
@@ -127,10 +129,12 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         
-        //return s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot()); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
+        return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(3);//y.andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot())); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
+        //return s_Swerve.balanceRobot(); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
+        //return s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot()); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true )
         //return new PathwithStops(s_Swerve,armSubsystem, vision);
-        return new EventAutoTest(s_Swerve);
+        //return new EventAutoTest(s_Swerve, shooter);
     }
 
-    
+
 }
