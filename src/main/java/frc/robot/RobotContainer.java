@@ -135,6 +135,8 @@ public class RobotContainer {
         /* Shoot And Grab And Balance */
         //return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("Advance Auto", new PathConstraints(4, 3)), true )).andThen(shooter.intake()).withTimeout(1.4).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("Advance Auto 2", new PathConstraints(4, 3)), false)).andThen(s_Swerve.balanceRobot()); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
 
+        /* Shoot, Grab, And Shoot */
+        //return new EventAutoTest(s_Swerve, shooter);
 
         //return s_Swerve.balanceRobot(); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
         //return s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot()); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true )
