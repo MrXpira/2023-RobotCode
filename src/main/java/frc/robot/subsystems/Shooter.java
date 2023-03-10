@@ -12,6 +12,12 @@ import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
 
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.shuffleboard.WidgetType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -22,6 +28,10 @@ public class Shooter extends SubsystemBase {
   TalonFX motorTop;
   TalonFX rotateMotor;
   TalonFX rotateMotorFollower;
+  GenericEntry kP;
+  NetworkTableEntry kD;
+  NetworkTableEntry kI;
+
 
   /** Creates a new Shooter. */
   public Shooter() {
@@ -70,16 +80,27 @@ public class Shooter extends SubsystemBase {
 
   @Override
   public void periodic() {
-      SmartDashboard.putNumber("Shooter Master Falcon Position", rotateMotor.getSelectedSensorPosition());
-      SmartDashboard.putNumber("Shooter Follower Falcon Position", rotateMotorFollower.getSelectedSensorPosition());
-      SmartDashboard.putNumber("Shooter Follower Falcon Voltage", rotateMotor.getStatorCurrent());
-      SmartDashboard.putNumber("Feed Forward", calculateFeedForward());
-      SmartDashboard.putNumber("Angle", getDegrees());
 
+      ShuffleboardTab tab = Shuffleboard.getTab("Arm");
+      // SmartDashboard.putNumber("Shooter Master Falcon Position", rotateMotor.getSelectedSensorPosition());
+      // SmartDashboard.putNumber("Shooter Follower Falcon Position", rotateMotorFollower.getSelectedSensorPosition());
+      // SmartDashboard.putNumber("Shooter Follower Falcon Voltage", rotateMotor.getStatorCurrent());
+      // SmartDashboard.putNumber("Feed Forward", calculateFeedForward());
+       SmartDashboard.putNumber("kP", kP.getDouble(.5));
+
+      tab.add(this);
+      tab.add("Position Of Arm", rotateMotor.getSelectedSensorPosition()).withWidget(BuiltInWidgets.kGraph);
+      //Shuffleboard.getTab("Arm").add("P", 
+      tab.add("Motor Controller", rotateMotor.getMotorOutputPercent()).withWidget(BuiltInWidgets.kMotorController);
+      tab.add("FeedForward", calculateFeedForward()).withWidget(BuiltInWidgets.kGraph);
+
+      kP = tab.add("P", .05).getEntry();
+
+      
   }
 
   private double getDegrees() {
-    int kMeasuredPosHorizontal = 9100; //Position measured when arm is horizontal
+    int kMeasuredPosHorizontal = 9100; //Position measured when arm is horizontal 
       double kTicksPerDegree = (2048 / 360) * 12; //Sensor is 1:1 with arm rotation
       double currentPos = rotateMotor.getSelectedSensorPosition();
       double degrees = (currentPos - kMeasuredPosHorizontal) / kTicksPerDegree;

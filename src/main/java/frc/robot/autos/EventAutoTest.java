@@ -31,8 +31,8 @@ public class EventAutoTest extends SequentialCommandGroup {
         // This is just an example event map. It would be better to have a constant, global event map
         // in your code that will be used by all path following commands.
         HashMap<String, Command> eventMap = new HashMap<>();
-        // eventMap.put("shootHigh", shooter.moveArmToPosition(1500).andThen(shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor)));
-        // eventMap.put("intake", shooter.moveArmToPosition(9100));
+        //eventMap.put("shootHigh", shooter.moveArmToPosition(1500).andThen(shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor)));
+        eventMap.put("intake", shooter.intake());
         // eventMap.put("balance", s_Swerve.balanceRobot());
         // eventMap.put("reverseBallance", s_Swerve.reverseBalance());
         // eventMap.put("moveOnStation", s_Swerve.moveOntoChargeStation());

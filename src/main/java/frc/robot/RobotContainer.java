@@ -83,13 +83,7 @@ public class RobotContainer {
             )
         );
 
-        // shooter.setDefaultCommand(
-        //     shooter.defaultState()
-        // );
-
-
-        candleSubsystem.fireAnim();        
-
+        // https://docs.wpilib.org/en/stable/docs/software/dashboards/smartdashboard/choosing-an-autonomous-program-from-smartdashboard.html#setting-up-sendablechooser
         // Configure the button bindings
         configureBindings();
     }
@@ -129,11 +123,21 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         
-        return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(3);//y.andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot())); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
+        /* Just Shoot Command */
+        //return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5);
+
+        /* Shoot And Balance */
+        //return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot())); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
+
+        /* Shoot And Grab */
+        return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("Advance Auto", new PathConstraints(4, 3)), true )).andThen(shooter.intake()).withTimeout(1.4);
+
+        /* Shoot And Grab And Balance */
+        //return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("Advance Auto", new PathConstraints(4, 3)), true )).andThen(shooter.intake()).withTimeout(1.4).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("Advance Auto 2", new PathConstraints(4, 3)), false)).andThen(s_Swerve.balanceRobot()); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
+
+
         //return s_Swerve.balanceRobot(); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
         //return s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot()); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true )
-        //return new PathwithStops(s_Swerve,armSubsystem, vision);
-        //return new EventAutoTest(s_Swerve, shooter);
     }
 
 
