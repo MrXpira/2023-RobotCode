@@ -2,15 +2,15 @@
   "waypoints": [
     {
       "anchorPoint": {
-        "x": 1.0,
-        "y": 3.0
+        "x": 1.7864479588608302,
+        "y": 2.729502827426708
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.0,
-        "y": 3.0
+        "x": 1.7773796951102674,
+        "y": 2.729502827426708
       },
-      "holonomicAngle": 0,
+      "holonomicAngle": -179.42127443439225,
       "isReversal": false,
       "velOverride": null,
       "isLocked": false,
@@ -24,40 +24,15 @@
     },
     {
       "anchorPoint": {
-        "x": 3.0,
-        "y": 5.0
+        "x": 4.09885521525429,
+        "y": 2.747639354927833
       },
       "prevControl": {
-        "x": 3.0,
-        "y": 4.0
-      },
-      "nextControl": {
-        "x": 3.0,
-        "y": 4.0
-      },
-      "holonomicAngle": 0,
-      "isReversal": true,
-      "velOverride": null,
-      "isLocked": false,
-      "isStopPoint": false,
-      "stopEvent": {
-        "names": [],
-        "executionBehavior": "parallel",
-        "waitBehavior": "none",
-        "waitTime": 0
-      }
-    },
-    {
-      "anchorPoint": {
-        "x": 5.0,
-        "y": 3.0
-      },
-      "prevControl": {
-        "x": 4.0,
-        "y": 3.0
+        "x": 3.0988552152542903,
+        "y": 2.747639354927833
       },
       "nextControl": null,
-      "holonomicAngle": 0,
+      "holonomicAngle": 180.0,
       "isReversal": false,
       "velOverride": null,
       "isLocked": false,
@@ -72,9 +47,45 @@
   ],
   "markers": [
     {
+      "position": 0.0,
+      "names": [
+        "shoot"
+      ]
+    },
+    {
       "position": 1.0,
       "names": [
-        "intake"
+        "balance"
+      ]
+    },
+    {
+      "position": 0.0,
+      "names": [
+        "shoot"
+      ]
+    },
+    {
+      "position": 0.0,
+      "names": [
+        "event"
+      ]
+    },
+    {
+      "position": 0.0,
+      "names": [
+        "event"
+      ]
+    },
+    {
+      "position": 0.0,
+      "names": [
+        "shoot"
+      ]
+    },
+    {
+      "position": 1.0,
+      "names": [
+        "balance"
       ]
     }
   ]
