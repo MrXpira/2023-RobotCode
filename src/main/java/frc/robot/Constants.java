@@ -18,9 +18,13 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+
+import java.util.HashMap;
 import java.util.List;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj2.command.Command;
+
 import java.util.TreeMap;
 
 public final class Constants {
@@ -33,29 +37,19 @@ public final class Constants {
         public static final int rotateMotor = 22;
         public static final int rotateMotorFollower = 23;
 
-        public static final double highGoalVelocityTopMotor = .97;
-        public static final double highGoalVelocityBottomMotor = 1;
+        public static final double highGoalVelocityTopMotor = .4;
+        public static final double highGoalVelocityBottomMotor = .4;
 
-        public static final double midGoalVelocityBottomMotor = .75;
-        public static final double midGoalVelocityTopMotor = .75;
+        public static final double midGoalVelocityBottomMotor = .21;
+        public static final double midGoalVelocityTopMotor = .22;
 
-        public static final double bottomGoalVelocityTopMotor = .25;
-        public static final double bottomGoalVelocityBottomMotor = .25
-        ;
+        public static final double bottomGoalVelocityTopMotor = .15;
+        public static final double bottomGoalVelocityBottomMotor = .1;
+        
 
-        // public static final double highGoalVelocityTopMotor = 30;
-        // public static final double highGoalVelocityBottomMotor = 30;
-
-        // public static final double midGoalVelocityBottomMotor = .75;
-        // public static final double midGoalVelocityTopMotor = .75;
-
-        // public static final double bottomGoalVelocityTopMotor = .2;
-        // public static final double bottomGoalVelocityBottomMotor = .2;
-
-
-        public static final double kP = .5;//.5;
+        public static final double kP = 0.04;//.04;//.5;
         public static final double kI = 0;
-        public static final double kD = 0.001;//.009;
+        public static final double kD = 4;//;0.009;//.009;
 
         public static final int kTimeoutMs = 0;
         public static final int kPIDLoopIdx = 0;
@@ -200,6 +194,8 @@ public final class Constants {
         public static final double kPXController = 1;
         public static final double kPYController = 1;
         public static final double kPThetaController = 1;
+
+        // public static HashMap<String, Command> eventMap = new HashMap<>();
     
         /* Constraint for the motion profilied robot angle controller */
         public static final TrapezoidProfile.Constraints kThetaControllerConstraints =

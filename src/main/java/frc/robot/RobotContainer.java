@@ -3,6 +3,8 @@ package frc.robot;
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.auto.PIDConstants;
+import com.pathplanner.lib.auto.SwerveAutoBuilder;
 import com.pathplanner.lib.server.PathPlannerServer;
 
 import edu.wpi.first.hal.CANData;
@@ -22,27 +24,32 @@ import frc.robot.autos.*;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 
-/**
- * This class is where the bulk of the robot should be declared. Since Command-based is a
- * "declarative" paradigm, very little robot logic should actually be handled in the {@link Robot}
- * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
- * subsystems, commands, and button mappings) should be declared here.
- */
+
 public class RobotContainer {
     /* Controllers */
     private final XboxController driver = new XboxController(0);
     private final XboxController operator = new XboxController(1);
     
-    
     /* Subsystems */
     private final Swerve s_Swerve = new Swerve();
-    private final CANdleSubsystem candleSubsystem = new CANdleSubsystem();
     private final Shooter shooter = new Shooter();
 
     /* Drive Controls */
     private final int translationAxis = XboxController.Axis.kLeftY.value;
     private final int strafeAxis = XboxController.Axis.kLeftX.value;
     private final int rotationAxis = XboxController.Axis.kRightX.value;
+
+    // SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
+    //         s_Swerve::getPose, // Pose2d supplier
+    //         s_Swerve::resetOdometry, // Pose2d consumer, used to reset odometry at the beginning of auto
+    //         Constants.Swerve.swerveKinematics, // SwerveDriveKinematics
+    //         new PIDConstants(Constants.AutoConstants.kPXController, 0.0, 0.0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+    //         new PIDConstants(Constants.AutoConstants.kPThetaController, 0.0, 0.0), // PID constants to correct for rotation error (used to create the rotation controller)
+    //         s_Swerve::setModuleStates, // Module states consumer used to output to the drive subsystem
+    //         Constants.eventMap,
+    //         true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
+    //         s_Swerve // The drive subsystem. Used to properly set the requirements of path following commands
+    //     );
 
     /* Driver Buttons */
     private final JoystickButton d_Y = new JoystickButton(driver, XboxController.Button.kY.value);
@@ -83,6 +90,8 @@ public class RobotContainer {
             )
         );
 
+        shooter.setDefaultCommand(shooter.moveArm(() -> (operator.getRawAxis(3) - operator.getRawAxis(2)*.3)));
+
         // https://docs.wpilib.org/en/stable/docs/software/dashboards/smartdashboard/choosing-an-autonomous-program-from-smartdashboard.html#setting-up-sendablechooser
         // Configure the button bindings
         configureBindings();
@@ -113,6 +122,8 @@ public class RobotContainer {
         o_A.whileTrue(shooter.shoot(Constants.ShooterConstants.bottomGoalVelocityTopMotor, Constants.ShooterConstants.bottomGoalVelocityBottomMotor)); // Shoot low
         o_B.whileTrue(shooter.shoot(Constants.ShooterConstants.midGoalVelocityTopMotor, Constants.ShooterConstants.midGoalVelocityBottomMotor)); // Shoot medium
         o_X.whileTrue(shooter.intake());
+        //o_rightBumper.whileTrue(shooter.moveArmZero());
+        o_leftBumper.whileTrue(shooter.resetArm());
     }
 
 
@@ -123,14 +134,24 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         
-        /* Just Shoot Command */
-        //return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5);
+        /* Just Shoot High Command */
+        // shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5);
 
-        /* Shoot And Balance */
+        /* Just Shoot Mid Command */
+        //return shooter.shoot(Constants.ShooterConstants.midGoalVelocityTopMotor, Constants.ShooterConstants.midGoalVelocityBottomMotor).withTimeout(1.5);
+
+        /* Shoot High And Balance Without Pathplanner */
+        return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.moveOntoChargeStation()).andThen(s_Swerve.balanceRobot());
+
+        /* Shoot High And Balance */
         //return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot())); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
 
+        /* Shoot Mid And Balance */
+        //return shooter.shoot(Constants.ShooterConstants.midGoalVelocityTopMotor, Constants.ShooterConstants.midGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("ShootBalance", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot())); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
+
+        
         /* Shoot And Grab */
-        return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("Advance Auto", new PathConstraints(4, 3)), true )).andThen(shooter.intake()).withTimeout(1.4);
+        //return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("Advance Auto", new PathConstraints(4, 3)), true )).andThen(shooter.intake()).withTimeout(1.4);
 
         /* Shoot And Grab And Balance */
         //return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("Advance Auto", new PathConstraints(4, 3)), true )).andThen(shooter.intake()).withTimeout(1.4).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("Advance Auto 2", new PathConstraints(4, 3)), false)).andThen(s_Swerve.balanceRobot()); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());

@@ -58,6 +58,7 @@ public class Swerve extends SubsystemBase {
         gyro = new Pigeon2(Constants.Swerve.pigeonID);
         gyro.configFactoryDefault();
         zeroGyro();
+        //gyro.setYaw(180);
 
         
 
@@ -228,16 +229,16 @@ public class Swerve extends SubsystemBase {
             System.out.println("Not on platform. Moving forward.");
             drive(new Translation2d(.5,0),0, false, true);
             System.out.println(getPitch());
-        }).until(() -> getPitch() > 5 || getPitch() > 5);
+        }).until(() -> getPitch() > 5 || getPitch() < -5);
     }
 
     public Command moveRevOntoChargeStation() {
         
         return this.run(() -> {
             System.out.println("Not on platform. Moving forward.");
-            drive(new Translation2d(.5,0),0, false, true);
+            drive(new Translation2d(-.5,0),0, false, true);
             System.out.println(getPitch());
-        }).until(() -> getPitch() > 5 || getPitch() > 5);
+        }).until(() -> getPitch() > 5 || getPitch() < -5);
     }
 
 

@@ -5,19 +5,13 @@
 package frc.robot.subsystems;
 
 
+import java.util.function.DoubleSupplier;
+
 import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
-import com.ctre.phoenix.motorcontrol.TalonFXControlMode;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
-
-import edu.wpi.first.networktables.GenericEntry;
-import edu.wpi.first.networktables.NetworkTableEntry;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj.shuffleboard.WidgetType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -28,9 +22,6 @@ public class Shooter extends SubsystemBase {
   TalonFX motorTop;
   TalonFX rotateMotor;
   TalonFX rotateMotorFollower;
-  GenericEntry kP;
-  NetworkTableEntry kD;
-  NetworkTableEntry kI;
 
 
   /** Creates a new Shooter. */
@@ -81,43 +72,38 @@ public class Shooter extends SubsystemBase {
   @Override
   public void periodic() {
 
-      ShuffleboardTab tab = Shuffleboard.getTab("Arm");
-      // SmartDashboard.putNumber("Shooter Master Falcon Position", rotateMotor.getSelectedSensorPosition());
-      // SmartDashboard.putNumber("Shooter Follower Falcon Position", rotateMotorFollower.getSelectedSensorPosition());
-      // SmartDashboard.putNumber("Shooter Follower Falcon Voltage", rotateMotor.getStatorCurrent());
-      // SmartDashboard.putNumber("Feed Forward", calculateFeedForward());
-       SmartDashboard.putNumber("kP", kP.getDouble(.5));
+      // ShuffleboardTab tab = Shuffleboard.getTab("Arm");
+      SmartDashboard.putNumber("Shooter Master Falcon Position", rotateMotor.getSelectedSensorPosition());
+      SmartDashboard.putNumber("Shooter Follower Falcon Position", rotateMotorFollower.getSelectedSensorPosition());
+      SmartDashboard.putNumber("Shooter Follower Falcon Voltage", rotateMotor.getStatorCurrent());
+      
+      //  SmartDashboard.putNumber("kP", kP.getDouble(.5));
 
-      tab.add(this);
-      tab.add("Position Of Arm", rotateMotor.getSelectedSensorPosition()).withWidget(BuiltInWidgets.kGraph);
-      //Shuffleboard.getTab("Arm").add("P", 
-      tab.add("Motor Controller", rotateMotor.getMotorOutputPercent()).withWidget(BuiltInWidgets.kMotorController);
-      tab.add("FeedForward", calculateFeedForward()).withWidget(BuiltInWidgets.kGraph);
+      SmartDashboard.putNumber("Current Arm", rotateMotor.getStatorCurrent());
 
-      kP = tab.add("P", .05).getEntry();
+
+      // tab.add(this);
+      // tab.add("Position Of Arm", rotateMotor.getSelectedSensorPosition()).withWidget(BuiltInWidgets.kGraph);
+      // //Shuffleboard.getTab("Arm").add("P", 
+      // tab.add("Motor Controller", rotateMotor.getMotorOutputPercent()).withWidget(BuiltInWidgets.kMotorController);
+      // tab.add("FeedForward", calculateFeedForward()).withWidget(BuiltInWidgets.kGraph);
+
+      // kP = tab.add("P", .05).getEntry();
 
       
   }
 
-  private double getDegrees() {
-    int kMeasuredPosHorizontal = 9100; //Position measured when arm is horizontal 
-      double kTicksPerDegree = (2048 / 360) * 12; //Sensor is 1:1 with arm rotation
-      double currentPos = rotateMotor.getSelectedSensorPosition();
-      double degrees = (currentPos - kMeasuredPosHorizontal) / kTicksPerDegree;
-      return degrees;
-  }
-  private double calculateFeedForward() {
-      double radians = java.lang.Math.toRadians(getDegrees());
-      double cosineScalar = java.lang.Math.cos(radians);
-
-
-      double maxGravityFF = -.080;     
-
-      return maxGravityFF * cosineScalar;
+  public Command moveArm(DoubleSupplier percent) {
+    return this.run(() -> {
+      rotateMotor.set(ControlMode.PercentOutput, percent.getAsDouble());
+      rotateMotorFollower.follow(rotateMotor);
+    });
   }
 
   public void moveArmToPosition(double targetPos) {
-      int kMeasuredPosHorizontal = 9100; //Position measured when arm is horizontal
+      System.out.println("Moving to position");
+
+      int kMeasuredPosHorizontal = 9000; //Position measured when arm is horizontal
       double kTicksPerDegree = (2048 / 360) * 12; //Sensor is 1:1 with arm rotation
       double currentPos = rotateMotor.getSelectedSensorPosition();
       double degrees = (currentPos - kMeasuredPosHorizontal) / kTicksPerDegree;
@@ -126,9 +112,14 @@ public class Shooter extends SubsystemBase {
 
 
       
-      double maxGravityFF = -.09;
+      double maxGravityFF = -.075;
 
-      rotateMotor.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, maxGravityFF * cosineScalar);
+      /* Test Out Percent Output for arm */
+      // if (rotateMotor.getStatorCurrent() > 65) {
+      //   rotateMotor.set(ControlMode.PercentOutput, 0);
+      // }
+      // rotateMotor.set(ControlMode.Position, targetPos, DemandType.ArbitraryFeedForward, maxGravityFF * cosineScalar); // Colin 5431 
+      rotateMotor.set(ControlMode.Position, targetPos, DemandType.ArbitraryFeedForward, maxGravityFF);
       rotateMotorFollower.follow(rotateMotor);
       System.out.println("Move to: " + targetPos + "Current: " + rotateMotor.getSelectedSensorPosition());  
   }
@@ -149,7 +140,7 @@ public class Shooter extends SubsystemBase {
 
   public Command intake() {
     return this.runEnd(() -> {
-        moveArmToPosition(9100);
+        moveArmToPosition(9000);
 
         motorTop.set(ControlMode.PercentOutput, Constants.ShooterConstants.intakeVelocity);
         motorBottom.set(ControlMode.PercentOutput, Constants.ShooterConstants.intakeVelocity);
@@ -158,5 +149,18 @@ public class Shooter extends SubsystemBase {
         motorBottom.set(ControlMode.PercentOutput, 0);
         moveArmToPosition(0);
     }));
+  }
+
+  public Command moveArmZero() {
+    return this.run(() -> moveArmToPosition(-10000));
+  }
+
+
+  public Command resetArm() {
+    return this.runOnce(() -> {
+        rotateMotor.setSelectedSensorPosition(0);
+        rotateMotorFollower.setSelectedSensorPosition(0);
+
+    });
   }
 }
