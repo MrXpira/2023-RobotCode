@@ -47,13 +47,27 @@ public final class Constants {
         public static final double bottomGoalVelocityBottomMotor = .13;
         
 
-        public static final double kP = 0.0331;//.04;//.5;
-        public static final double kI = 0;
-        public static final double kD = 4;//;0.009;//.009;
-
         public static final int kTimeoutMs = 0;
         public static final int kPIDLoopIdx = 0;
         public static final double intakeVelocity = .28 ;
+
+        /* Sysid values divided by 12 to convert from voltage */
+        public static final double armkG = (0 / 12);
+        public static final double armkS = (0 / 12);
+
+
+        public static final double armkP = 0;
+        public static final double armkI = 0;
+        public static final double armkD = 0;
+        public static final double armkF = 0;
+
+        public static final double shooterArmPeakCurrentDuration = 0.1;
+        public static final double shooterArmPeakCurrentLimit = 45;
+        public static final double shooterArmContinuousCurrentLimit = 30;
+        public static final boolean shooterArmEnableCurrentLimit = true;
+        public static final double openLoopRamp = 0.25;
+        public static final double motionCruiseVelocity = 15000;
+        public static final double motionAcceleration = 1500;
     }
 
     public static class VisionConstants {

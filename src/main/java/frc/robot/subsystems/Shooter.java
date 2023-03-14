@@ -12,17 +12,21 @@ import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
 import com.ctre.phoenix.motorcontrol.can.TalonFX;
+
+import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.CTREConfigs;
 import frc.robot.Constants;
+import frc.robot.Robot;
 
 public class Shooter extends SubsystemBase {
   TalonFX motorBottom; 
   TalonFX motorTop;
   TalonFX rotateMotor;
   TalonFX rotateMotorFollower;
-
+  ArmFeedforward m_armFF;
 
   /** Creates a new Shooter. */
   public Shooter() {
@@ -30,11 +34,10 @@ public class Shooter extends SubsystemBase {
     motorBottom = new TalonFX(Constants.ShooterConstants.motorBottomID);
     rotateMotor = new TalonFX(Constants.ShooterConstants.rotateMotor);
     rotateMotorFollower = new TalonFX(Constants.ShooterConstants.rotateMotorFollower);
+    
+    m_armFF = new ArmFeedforward(Constants.ShooterConstants.armkS, Constants.ShooterConstants.armkG, 0);
 
-    rotateMotorFollower.follow(rotateMotor);
-    rotateMotor.setInverted(TalonFXInvertType.Clockwise);
-    rotateMotorFollower.setInverted(TalonFXInvertType.CounterClockwise);
-
+    /* Config Intake Motors */
     motorTop.setNeutralMode(NeutralMode.Coast);
     motorBottom.setNeutralMode(NeutralMode.Coast);
     
@@ -42,31 +45,19 @@ public class Shooter extends SubsystemBase {
     motorTop.setInverted(TalonFXInvertType.Clockwise);
     motorBottom.setInverted(TalonFXInvertType.Clockwise);
 
-    // encoder.setDistancePerRotation(360);
-    rotateMotor.configFactoryDefault();
-    resetPos();
-    // rotateMotor.config_kF(0, Constants.ArmConstants.UP_kF, 0);
-    rotateMotor.config_kP(Constants.ShooterConstants.kPIDLoopIdx, Constants.ShooterConstants.kP, Constants.ShooterConstants.kTimeoutMs);
-    rotateMotor.config_kI(Constants.ShooterConstants.kPIDLoopIdx, Constants.ShooterConstants.kI, Constants.ShooterConstants.kTimeoutMs);
-    rotateMotor.config_kD(Constants.ShooterConstants.kPIDLoopIdx, Constants.ShooterConstants.kD, Constants.ShooterConstants.kTimeoutMs);
-
-    rotateMotor.configMotionSCurveStrength(2);
-
+    /* Config Arm Motor */
+    rotateMotor.configAllSettings(Robot.ctreConfigs.shooterArmFXConfig);
     rotateMotor.setInverted(TalonFXInvertType.Clockwise);
-    rotateMotorFollower.setInverted(TalonFXInvertType.CounterClockwise);
-
+    rotateMotor.configMotionSCurveStrength(0);
     rotateMotor.setNeutralMode(NeutralMode.Brake);
-
+    
+    /* Follow Arm Motor */
+    rotateMotorFollower.follow(rotateMotor);
+    rotateMotorFollower.setInverted(TalonFXInvertType.CounterClockwise);   
     rotateMotorFollower.setNeutralMode(NeutralMode.Brake);
-
-    /* Set acceleration and vcruise velocity - see documentation */
-		rotateMotor.configMotionCruiseVelocity(15000, Constants.ShooterConstants.kTimeoutMs);
-		rotateMotor.configMotionAcceleration(3000, Constants.ShooterConstants.kTimeoutMs);
 
 		/* Zero the sensor once on robot boot up */
 		rotateMotor.setSelectedSensorPosition(0, Constants.ShooterConstants.kPIDLoopIdx, Constants.ShooterConstants.kTimeoutMs);
-
-    rotateMotor.configNeutralDeadband(0.0001, Constants.ShooterConstants.kTimeoutMs);
   }
 
   @Override
@@ -101,31 +92,14 @@ public class Shooter extends SubsystemBase {
   }
 
   public void moveArmToPosition(double targetPos) {
-      System.out.println("Moving to position");
+    double armMotorHorizontalOffset = 9000;
+      rotateMotor.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, 
+                      m_armFF.calculate(((2*Math.PI) / 2048 / 16) * (rotateMotor.getSelectedSensorPosition() - armMotorHorizontalOffset), 
+                      rotateMotor.getSelectedSensorVelocity()));
 
-      int kMeasuredPosHorizontal = 9000; //Position measured when arm is horizontal
-      double kTicksPerDegree = (2048 / 360) * 12; //Sensor is 1:1 with arm rotation
-      double currentPos = rotateMotor.getSelectedSensorPosition();
-      double degrees = (currentPos - kMeasuredPosHorizontal) / kTicksPerDegree;
-      double radians = java.lang.Math.toRadians(degrees);
-      double cosineScalar = java.lang.Math.cos(radians);
-
-
-      
-      double maxGravityFF = -.075;
-
-      /* Test Out Percent Output for arm */
-      // if (rotateMotor.getStatorCurrent() > 65) {
-      //   rotateMotor.set(ControlMode.PercentOutput, 0);
-      // }
-      // rotateMotor.set(ControlMode.Position, targetPos, DemandType.ArbitraryFeedForward, maxGravityFF * cosineScalar); // Colin 5431 
-      rotateMotor.set(ControlMode.Position, targetPos, DemandType.ArbitraryFeedForward, maxGravityFF);
       rotateMotorFollower.follow(rotateMotor);
-      System.out.println("Move to: " + targetPos + "Current: " + rotateMotor.getSelectedSensorPosition());  
-  }
 
-  private void resetPos() {
-    rotateMotor.setSelectedSensorPosition(0, Constants.ShooterConstants.kPIDLoopIdx, Constants.ShooterConstants.kTimeoutMs);
+      System.out.println("Move to: " + targetPos + "Current: " + rotateMotor.getSelectedSensorPosition());  
   }
 
   public Command shoot(double speedTop, double speedBottom) {

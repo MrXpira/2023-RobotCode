@@ -12,12 +12,14 @@ public final class CTREConfigs {
     public TalonFXConfiguration swerveDriveFXConfig;
     public CANCoderConfiguration swerveCanCoderConfig;
 
-    public TalonFXConfiguration armMotorFXConfig;
+    public TalonFXConfiguration shooterArmFXConfig;
 
     public CTREConfigs(){
         swerveAngleFXConfig = new TalonFXConfiguration();
         swerveDriveFXConfig = new TalonFXConfiguration();
         swerveCanCoderConfig = new CANCoderConfiguration();
+
+        shooterArmFXConfig = new TalonFXConfiguration();
 
         /* Swerve Angle Motor Configurations */
         SupplyCurrentLimitConfiguration angleSupplyLimit = new SupplyCurrentLimitConfiguration(
@@ -52,5 +54,23 @@ public final class CTREConfigs {
         swerveCanCoderConfig.sensorDirection = Constants.Swerve.canCoderInvert;
         swerveCanCoderConfig.initializationStrategy = SensorInitializationStrategy.BootToAbsolutePosition;
         swerveCanCoderConfig.sensorTimeBase = SensorTimeBase.PerSecond;
+
+        /* Shooter Arm Configuration */
+        SupplyCurrentLimitConfiguration shooterArmSupplyLimit = new SupplyCurrentLimitConfiguration(
+            Constants.ShooterConstants.shooterArmEnableCurrentLimit, 
+            Constants.ShooterConstants.shooterArmContinuousCurrentLimit, 
+            Constants.ShooterConstants.shooterArmPeakCurrentLimit, 
+            Constants.ShooterConstants.shooterArmPeakCurrentDuration);
+
+        shooterArmFXConfig.slot0.kP = Constants.ShooterConstants.armkP;
+        shooterArmFXConfig.slot0.kI = Constants.ShooterConstants.armkI;
+        shooterArmFXConfig.slot0.kD = Constants.ShooterConstants.armkD;
+        shooterArmFXConfig.slot0.kF = Constants.ShooterConstants.armkF;
+        shooterArmFXConfig.supplyCurrLimit = shooterArmSupplyLimit;
+        shooterArmFXConfig.openloopRamp = Constants.ShooterConstants.openLoopRamp;
+        
+        shooterArmFXConfig.motionCruiseVelocity = Constants.ShooterConstants.motionCruiseVelocity;
+        shooterArmFXConfig.motionAcceleration = Constants.ShooterConstants.motionAcceleration;
+        
     }
 }
