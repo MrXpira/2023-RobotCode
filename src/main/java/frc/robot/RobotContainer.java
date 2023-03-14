@@ -141,7 +141,7 @@ public class RobotContainer {
         //return shooter.shoot(Constants.ShooterConstants.midGoalVelocityTopMotor, Constants.ShooterConstants.midGoalVelocityBottomMotor).withTimeout(1.5);
 
         /* Shoot High And Balance Without Pathplanner */
-        return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.moveOntoChargeStation()).andThen(s_Swerve.balanceRobot());
+        return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.moveRevOntoChargeStation()).andThen(s_Swerve.reverseBalance());
 
         /* Shoot High And Balance */
         //return shooter.shoot(Constants.ShooterConstants.highGoalVelocityTopMotor, Constants.ShooterConstants.highGoalVelocityBottomMotor).withTimeout(1.5).andThen(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ).andThen(s_Swerve.balanceRobot())); //SequentialCommandGroup(s_Swerve.followTrajectoryCommand(PathPlanner.loadPath("SimpleAuto", new PathConstraints(4, 3)), true ),s_Swerve.balanceRobot());
@@ -165,3 +165,11 @@ public class RobotContainer {
 
 
 }
+
+
+// TODO //
+
+// Test intake command
+// Test balance without pathplanner 
+// test path planner auto 
+// make sure everything else works 

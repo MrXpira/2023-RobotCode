@@ -11,18 +11,13 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import java.util.Optional;
 
 import org.photonvision.EstimatedRobotPose;
-import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonUtils;
-
 import com.ctre.phoenix.sensors.Pigeon2;
-
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -58,7 +53,7 @@ public class Swerve extends SubsystemBase {
         gyro = new Pigeon2(Constants.Swerve.pigeonID);
         gyro.configFactoryDefault();
         zeroGyro();
-        //gyro.setYaw(180);
+        gyro.setYaw(180);
 
         
 
@@ -75,7 +70,7 @@ public class Swerve extends SubsystemBase {
         Timer.delay(1.0);
         resetModulesToAbsolute();
 
-        forwardController = new PIDController(.0169, 0, 0.01);
+        forwardController = new PIDController(.048, 0.0001, 0.01);
         swerveOdometry = new SwerveDriveOdometry(Constants.Swerve.swerveKinematics, getYaw(), getModulePositions());
 
         SmartDashboard.putData("Field", m_fieldSim);
@@ -218,7 +213,7 @@ public class Swerve extends SubsystemBase {
         return this.run(() -> {
             System.out.println("Balancing");
             System.out.println(getPitch());
-            drive(new Translation2d(-forwardController.calculate(getPitch(),0),0),0, false, true);
+            drive(new Translation2d(-forwardController.calculate(-getPitch(),0),0),0, false, true);
         }).until(() -> getPitch() < .1 && getPitch() > -.1);
     }
 
@@ -227,18 +222,18 @@ public class Swerve extends SubsystemBase {
         
         return this.run(() -> {
             System.out.println("Not on platform. Moving forward.");
-            drive(new Translation2d(.5,0),0, false, true);
+            drive(new Translation2d(3,0),0, false, true);
             System.out.println(getPitch());
-        }).until(() -> getPitch() > 5 || getPitch() < -5);
+        }).until(() -> getPitch() > 10.5 || getPitch() < -10.5);
     }
 
     public Command moveRevOntoChargeStation() {
         
         return this.run(() -> {
             System.out.println("Not on platform. Moving forward.");
-            drive(new Translation2d(-.5,0),0, false, true);
+            drive(new Translation2d(-3,0),0, false, true);
             System.out.println(getPitch());
-        }).until(() -> getPitch() > 5 || getPitch() < -5);
+        }).until(() -> getPitch() > 10.5 || getPitch() < -10.5);
     }
 
 

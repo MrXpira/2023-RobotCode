@@ -20,7 +20,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 
 public class EventAutoTest extends SequentialCommandGroup {
     public EventAutoTest(Swerve s_Swerve, Shooter shooter){
-        List<PathPlannerTrajectory> example1 = PathPlanner.loadPathGroup("ShootBalance", new PathConstraints(4, 3));
+        List<PathPlannerTrajectory> example1 = PathPlanner.loadPathGroup("ShootAndGrab", new PathConstraints(4, 3));
         // This is just an example event map. It would be better to have a constant, global event map
         // in your code that will be used by all path following commands.
         HashMap<String, Command> eventMap = new HashMap<>();
