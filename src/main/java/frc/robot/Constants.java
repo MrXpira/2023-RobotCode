@@ -12,6 +12,7 @@ import frc.lib.util.SwerveModuleConstants;
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -30,57 +31,73 @@ import java.util.TreeMap;
 public final class Constants {
     public static final double stickDeadband = 0.1;
     public static final int CANdleID = 40;
+    public static final String CANBUS = "rio";
 
-    public static final class ShooterConstants {
-        public static final int motorTopID = 20;
-        public static final int motorBottomID = 21;
-        public static final int rotateMotor = 22;
-        public static final int rotateMotorFollower = 23;
-
-        public static final double highGoalVelocityTopMotor = .55;
-        public static final double highGoalVelocityBottomMotor = .55;
-
-        public static final double midGoalVelocityBottomMotor = .21;
-        public static final double midGoalVelocityTopMotor = .22;
-
-        public static final double bottomGoalVelocityTopMotor = .14;
-        public static final double bottomGoalVelocityBottomMotor = .13;
-        
-
+    public static final class ArmConstants {
+        public static final int ARM_MAIN_MOTOR = 13;
+        public static final int ARM_FOLLOWER_MOTOR = 14;
+    
         public static final int kTimeoutMs = 0;
         public static final int kPIDLoopIdx = 0;
-        public static final double intakeVelocity = .28 ;
-
+    
         /* Sysid values divided by 12 to convert from voltage */
-        public static final double armkG = (0 / 12);
-        public static final double armkS = (0 / 12);
-
-
-        public static final double armkP = 0;
-        public static final double armkI = 0;
-        public static final double armkD = 0;
-        public static final double armkF = 0;
-
-        public static final double shooterArmPeakCurrentDuration = 0.1;
-        public static final double shooterArmPeakCurrentLimit = 45;
-        public static final double shooterArmContinuousCurrentLimit = 30;
-        public static final boolean shooterArmEnableCurrentLimit = true;
+        public static final double armkG = (.36);
+        public static final double armkS = (0);
         public static final double openLoopRamp = 0.25;
-        public static final double motionCruiseVelocity = 15000;
-        public static final double motionAcceleration = 1500;
-    }
+        public static final double motionCruiseVelocity = 7200;
+        public static final double motionAcceleration = 6000;
+        public static final double kA = 0.02;
+        public static final double kV = .040;
+        public static final double armkP = 0.1546;//.15;
+        public static final double armkI = 0;
+        public static final double armkD = 2;//9.44;
+        public static final double armkF = .07885; //kV * (1023/12.0);
+    
+        public static final double kArmEncoderDistPerPulse = 2.0 * Math.PI / 2048;
+    
+        public static final double shooterArmPeakCurrentDuration = 1;
+        public static final double shooterArmPeakCurrentLimit = 55;
+        public static final double shooterArmContinuousCurrentLimit = 40;
+        public static final boolean shooterArmEnableCurrentLimit = true;
+        
+    
+    
+        public static final double MidPosition = 0;
+        public static final double restPosition = 0;
+        public static final double lowPosition = 0;
+        public static final double highPosition = 0;
+        public static final double intakePosition = 20000 ;
+        public static final double cannonPosition = 7000;
+        public static final int ArmGearRatio = 32;
+        
+      }
 
-    public static class VisionConstants {
-        public static final Transform3d robotToCam =
-                new Transform3d(
-                        new Translation3d(0.5, 0.0, 0.5),
-                        new Rotation3d(
-                                0, 0,
-                                0)); // Cam mounted facing forward, half a meter forward of center, half a meter up
-        // from center.
-        public static final String cameraName = "YOUR CAMERA NAME";
-    }
+    public static final class ShooterConstants {
+    public static final int SHOOTER_TOP_MOTOR = 15;
+    public static final int SHOOTER_BOTTOM_MOTOR = 16;
 
+    public static final double highGoalVelocityTopMotor = .40;//.36;//.33;//.27;
+    public static final double highGoalVelocityBottomMotor = .44;//.37;//.31;
+
+    public static final double midGoalVelocityBottomMotor = .23;
+    public static final double midGoalVelocityTopMotor = .23;
+
+    public static final double bottomGoalVelocityTopMotor = .16;
+    public static final double bottomGoalVelocityBottomMotor = .08;
+    
+    public static final double cannonGoalVelocityTopMotor = .70;
+    public static final double cannonGoalVelocityBottomMotor = .70;
+
+    public static final double cannon2GoalVelocityTopMotor = .50;
+    public static final double cannon2GoalVelocityBottomMotor = .54;
+
+
+    public static final double intakeVelocity = .3;
+    public static final int currentThreshold = 25;
+    public static final double shootWaitTime = 1;
+    
+
+  }
     public static final class Swerve {
         public static final int pigeonID = 30;
         public static final boolean invertGyro = false; // Always ensure Gyro is CCW+ CW-
@@ -89,8 +106,8 @@ public final class Constants {
             COTSFalconSwerveConstants.SDSMK4i(COTSFalconSwerveConstants.driveGearRatios.SDSMK4i_L2);
 
         /* Drivetrain Constants */
-        public static final double trackWidth = Units.inchesToMeters(24.750); //TODO: This must be tuned to specific robot
-        public static final double wheelBase = Units.inchesToMeters(24.625); //TODO: This must be tuned to specific robot
+        public static final double trackWidth = Units.inchesToMeters(18.75); //TODO: This must be tuned to specific robot
+        public static final double wheelBase = Units.inchesToMeters(18.75); //TODO: This must be tuned to specific robot
         public static final double wheelCircumference = chosenModule.wheelCircumference;
 
         /* Swerve Kinematics 
@@ -163,7 +180,7 @@ public final class Constants {
             public static final int angleMotorID = 2;
             public static final int canCoderID = 3;
             
-            public static final Rotation2d angleOffset = Rotation2d.fromDegrees(327.041);
+            public static final Rotation2d angleOffset = Rotation2d.fromDegrees(288.545);
             public static final SwerveModuleConstants constants = 
                 new SwerveModuleConstants(driveMotorID, angleMotorID, canCoderID, angleOffset);
         }
@@ -173,7 +190,7 @@ public final class Constants {
             public static final int driveMotorID = 4;
             public static final int angleMotorID = 5;
             public static final int canCoderID = 6;
-            public static final Rotation2d angleOffset = Rotation2d.fromDegrees(289.512);
+            public static final Rotation2d angleOffset = Rotation2d.fromDegrees(255.850);
             public static final SwerveModuleConstants constants = 
                 new SwerveModuleConstants(driveMotorID, angleMotorID, canCoderID, angleOffset);
         }
@@ -183,7 +200,7 @@ public final class Constants {
             public static final int driveMotorID = 7;
             public static final int angleMotorID = 8;
             public static final int canCoderID = 9;
-            public static final Rotation2d angleOffset = Rotation2d.fromDegrees(245.91);
+            public static final Rotation2d angleOffset = Rotation2d.fromDegrees(356.924);
             public static final SwerveModuleConstants constants = 
                 new SwerveModuleConstants(driveMotorID, angleMotorID, canCoderID, angleOffset);
         }
@@ -193,29 +210,65 @@ public final class Constants {
             public static final int driveMotorID = 10;
             public static final int angleMotorID = 11;
             public static final int canCoderID = 12;
-            public static final Rotation2d angleOffset = Rotation2d.fromDegrees(24.961);
+            public static final Rotation2d angleOffset = Rotation2d.fromDegrees(275.273);
             public static final SwerveModuleConstants constants = 
                 new SwerveModuleConstants(driveMotorID, angleMotorID, canCoderID, angleOffset);
         }
     }
 
-    public static final class AutoConstants { //TODO: The below constants are used in the example auto, and must be tuned to specific robot
-        public static final double kMaxSpeedMetersPerSecond = 3;
-        public static final double kMaxAccelerationMetersPerSecondSquared = 3;
-        public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
-        public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
-    
-        public static final double kPXController = 1;
-        public static final double kPYController = 1;
-        public static final double kPThetaController = 1;
+    public static final class Auton
+  {  
+    /* Balance PID Values */
+    public static final PIDController balancePID = new PIDController(.048, 0.0001, 0.01);
 
-        // public static HashMap<String, Command> eventMap = new HashMap<>();
-    
-        /* Constraint for the motion profilied robot angle controller */
-        public static final TrapezoidProfile.Constraints kThetaControllerConstraints =
-            new TrapezoidProfile.Constraints(
-                kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
-    }
+    /* Pathplanner */
+    public static final double MAX_SPEED        = 4;
+    public static final double MAX_ACCELERATION = 2;
+
+    // public static final double lineUpMid = 1.73;
+    // public static final List<ScoringArea> scoreAreaList =
+        // new ArrayList<ScoringArea>() {
+        //   {
+        //     add(
+        //         new ScoringArea(
+        //             new RectanglePoseArea(
+        //                 new Translation2d(1.23, 3.53), new Translation2d(2.86, 5.33)),
+        //             // diagonal y's should not overlap
+        //             new HolonomicPose2d(new Pose2d(lineUpMid, 4.95, new Rotation2d(Math.PI)), new Rotation2d()),
+        //             new HolonomicPose2d(new Pose2d(lineUpMid, 4.40, new Rotation2d(Math.PI)), new Rotation2d()),
+        //             new HolonomicPose2d(
+        //                 new Pose2d(lineUpMid, 3.84, new Rotation2d(Math.PI)), new Rotation2d())));
+        //     add(
+        //         new ScoringArea(
+        //             new RectanglePoseArea(
+        //                 new Translation2d(1.23, 1.90), new Translation2d(2.92, 3.52)),
+        //             new HolonomicPose2d(new Pose2d(lineUpMid, 3.30, new Rotation2d(Math.PI)), new Rotation2d()),
+        //             new HolonomicPose2d(new Pose2d(lineUpMid, 2.72, new Rotation2d(Math.PI)), new Rotation2d()),
+        //             new HolonomicPose2d(
+        //                 new Pose2d(lineUpMid, 2.19, new Rotation2d(Math.PI)), new Rotation2d())));
+        //     add(
+        //         new ScoringArea(
+        //             new RectanglePoseArea(
+        //                 new Translation2d(1.23, 0.0), new Translation2d(2.89, 1.89)),
+        //             new HolonomicPose2d(new Pose2d(lineUpMid, 1.61, new Rotation2d(Math.PI)), new Rotation2d()),
+        //             new HolonomicPose2d(new Pose2d(lineUpMid, 1.03, new Rotation2d(Math.PI)), new Rotation2d()),
+        //             new HolonomicPose2d(
+        //                 new Pose2d(lineUpMid, 0.55, new Rotation2d(Math.PI)), new Rotation2d())));
+        //   }
+        // };
+
+    public static final double maxSpeedMPS = 5;
+
+    public static final double maxAccelerationMPS = 3;
+
+	public static final double moveOntoChargeStationSpeed = 3;
+
+    public static final double kPXController = 0;
+
+    public static final double kPYController = 0;
+
+    public static final double kPThetaController = 0;
+  }
 
     
 }

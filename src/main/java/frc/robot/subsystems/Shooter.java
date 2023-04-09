@@ -1,140 +1,197 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems;
-
 
 import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix.motorcontrol.ControlMode;
-import com.ctre.phoenix.motorcontrol.DemandType;
 import com.ctre.phoenix.motorcontrol.NeutralMode;
 import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
-import com.ctre.phoenix.motorcontrol.can.TalonFX;
+import com.ctre.phoenix.motorcontrol.can.WPI_TalonFX;
 
-import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.util.datalog.DataLog;
+import edu.wpi.first.util.datalog.DoubleLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.CTREConfigs;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
-import frc.robot.Robot;
+import frc.robot.Constants.ShooterConstants;
 
 public class Shooter extends SubsystemBase {
-  TalonFX motorBottom; 
-  TalonFX motorTop;
-  TalonFX rotateMotor;
-  TalonFX rotateMotorFollower;
-  ArmFeedforward m_armFF;
+  WPI_TalonFX shootMotor; 
+  WPI_TalonFX shootMotorFollower;
 
+  DoubleLogEntry shooterSpeed;
+  DoubleLogEntry shooterCurrent;
+  double pValue;
+  public enum ShootSpeed {
+    Stop,
+    High,
+    Mid,
+    Low,
+    Intake,
+    Cannon,
+    CannonLow
+  } 
   /** Creates a new Shooter. */
   public Shooter() {
-    motorTop = new TalonFX(Constants.ShooterConstants.motorTopID);
-    motorBottom = new TalonFX(Constants.ShooterConstants.motorBottomID);
-    rotateMotor = new TalonFX(Constants.ShooterConstants.rotateMotor);
-    rotateMotorFollower = new TalonFX(Constants.ShooterConstants.rotateMotorFollower);
-    
-    m_armFF = new ArmFeedforward(Constants.ShooterConstants.armkS, Constants.ShooterConstants.armkG, 0);
+    shootMotorFollower = new WPI_TalonFX(ShooterConstants.SHOOTER_TOP_MOTOR, Constants.CANBUS);
+    shootMotor = new WPI_TalonFX(ShooterConstants.SHOOTER_BOTTOM_MOTOR, Constants.CANBUS);
 
+    shootMotor.set(ControlMode.PercentOutput, 0);
+    shootMotorFollower.set(ControlMode.PercentOutput, 0);
+
+    // pValue = Shuffleboard.getTab("Shoot").addPersistent("PValue", 0).getEntry().getDouble(0);
+    configMotors();
+    startLogging();
+
+    
+  }
+
+  private void configMotors() {
     /* Config Intake Motors */
-    motorTop.setNeutralMode(NeutralMode.Coast);
-    motorBottom.setNeutralMode(NeutralMode.Coast);
-    
+    shootMotor.setInverted(TalonFXInvertType.Clockwise);
+    shootMotor.setNeutralMode(NeutralMode.Coast);
+    shootMotor.configVoltageCompSaturation(10);
+    shootMotor.enableVoltageCompensation(true);
 
-    motorTop.setInverted(TalonFXInvertType.Clockwise);
-    motorBottom.setInverted(TalonFXInvertType.Clockwise);
+    shootMotorFollower.setInverted(TalonFXInvertType.Clockwise);
+    shootMotorFollower.setNeutralMode(NeutralMode.Coast);
+    shootMotorFollower.configVoltageCompSaturation(10); // "full output" will now scale to 11 Volts for all control modes when enabled.
+    shootMotorFollower.enableVoltageCompensation(true);
+  }
 
-    /* Config Arm Motor */
-    rotateMotor.configAllSettings(Robot.ctreConfigs.shooterArmFXConfig);
-    rotateMotor.setInverted(TalonFXInvertType.Clockwise);
-    rotateMotor.configMotionSCurveStrength(0);
-    rotateMotor.setNeutralMode(NeutralMode.Brake);
-    
-    /* Follow Arm Motor */
-    rotateMotorFollower.follow(rotateMotor);
-    rotateMotorFollower.setInverted(TalonFXInvertType.CounterClockwise);   
-    rotateMotorFollower.setNeutralMode(NeutralMode.Brake);
+  private void startLogging() {
+    DataLog log = DataLogManager.getLog();
 
-		/* Zero the sensor once on robot boot up */
-		rotateMotor.setSelectedSensorPosition(0, Constants.ShooterConstants.kPIDLoopIdx, Constants.ShooterConstants.kTimeoutMs);
+    shooterSpeed = new DoubleLogEntry(log, "/shooter/speed");
+    shooterCurrent = new DoubleLogEntry(log, "/shooter/current");
   }
 
   @Override
   public void periodic() {
-
-      // ShuffleboardTab tab = Shuffleboard.getTab("Arm");
-      SmartDashboard.putNumber("Shooter Master Falcon Position", rotateMotor.getSelectedSensorPosition());
-      SmartDashboard.putNumber("Shooter Follower Falcon Position", rotateMotorFollower.getSelectedSensorPosition());
-      SmartDashboard.putNumber("Shooter Follower Falcon Voltage", rotateMotor.getStatorCurrent());
-      
-      //  SmartDashboard.putNumber("kP", kP.getDouble(.5));
-
-      SmartDashboard.putNumber("Current Arm", rotateMotor.getStatorCurrent());
-
-
-      // tab.add(this);
-      // tab.add("Position Of Arm", rotateMotor.getSelectedSensorPosition()).withWidget(BuiltInWidgets.kGraph);
-      // //Shuffleboard.getTab("Arm").add("P", 
-      // tab.add("Motor Controller", rotateMotor.getMotorOutputPercent()).withWidget(BuiltInWidgets.kMotorController);
-      // tab.add("FeedForward", calculateFeedForward()).withWidget(BuiltInWidgets.kGraph);
-
-      // kP = tab.add("P", .05).getEntry();
-
-      
+    shooterSpeed.append(shootMotor.getSelectedSensorPosition());
+    shooterCurrent.append(shootMotor.getStatorCurrent());
+    SmartDashboard.putNumber("StatorCurrentShooterTopIntake", shootMotorFollower.getStatorCurrent());
+    // System.out.println(Shuffleboard.getTab("Shoot").addPersistent("PValue", 0).getEntry().getDouble(0));
   }
 
-  public Command moveArm(DoubleSupplier percent) {
-    return this.run(() -> {
-      rotateMotor.set(ControlMode.PercentOutput, percent.getAsDouble());
-      rotateMotorFollower.follow(rotateMotor);
+  private void shoot(ShootSpeed shootSpeed) {
+    double speedTop;
+    double speedBottom;
+    switch (shootSpeed) {
+      case Low: 
+        speedTop = Constants.ShooterConstants.bottomGoalVelocityTopMotor;
+        speedBottom = Constants.ShooterConstants.bottomGoalVelocityBottomMotor;
+        break;
+      case Mid: 
+        speedTop = Constants.ShooterConstants.midGoalVelocityTopMotor;
+        speedBottom = Constants.ShooterConstants.midGoalVelocityBottomMotor;
+        break;
+      case High: 
+        speedTop = Constants.ShooterConstants.highGoalVelocityTopMotor;
+        speedBottom = Constants.ShooterConstants.highGoalVelocityBottomMotor;
+        break;
+      case Intake: 
+        speedTop = -Constants.ShooterConstants.intakeVelocity;
+        speedBottom = -Constants.ShooterConstants.intakeVelocity;
+        break;
+      case Cannon:
+        speedTop = Constants.ShooterConstants.cannonGoalVelocityTopMotor;
+        speedBottom = Constants.ShooterConstants.cannonGoalVelocityBottomMotor;
+        break;
+        case CannonLow:
+        speedTop = Constants.ShooterConstants.cannon2GoalVelocityTopMotor;
+        speedBottom = Constants.ShooterConstants.cannon2GoalVelocityBottomMotor;
+        break;
+      default: 
+        speedTop = 0;
+        speedBottom = 0;
+        break;
+    }
+    
+    shootMotorFollower.set(ControlMode.PercentOutput, speedTop);
+    shootMotor.set(ControlMode.PercentOutput, speedBottom);
+  }
+
+  public Command shootHigh() {
+    return this.runOnce(() -> {
+      shoot(ShootSpeed.High);
+    }).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
+    shootMotorFollower.set(ControlMode.PercentOutput, 0);
+    shootMotor.set(ControlMode.PercentOutput, 0);
     });
   }
 
-  public void moveArmToPosition(double targetPos) {
-    double armMotorHorizontalOffset = 9000;
-      rotateMotor.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, 
-                      m_armFF.calculate(((2*Math.PI) / 2048 / 16) * (rotateMotor.getSelectedSensorPosition() - armMotorHorizontalOffset), 
-                      rotateMotor.getSelectedSensorVelocity()));
-
-      rotateMotorFollower.follow(rotateMotor);
-
-      System.out.println("Move to: " + targetPos + "Current: " + rotateMotor.getSelectedSensorPosition());  
+  public Command shootMid() {
+    return this.runOnce(() -> {
+      shoot(ShootSpeed.Mid);
+    }).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
+    shootMotorFollower.set(ControlMode.PercentOutput, 0);
+    shootMotor.set(ControlMode.PercentOutput, 0);
+    });
   }
 
-  public Command shoot(double speedTop, double speedBottom) {
-    return this.runEnd(() -> {
-      motorTop.set(ControlMode.PercentOutput, -speedTop);
-      motorBottom.set(ControlMode.PercentOutput, -speedBottom);
-    },(() -> {
-      motorTop.set(ControlMode.PercentOutput, 0);
-      motorBottom.set(ControlMode.PercentOutput, 0);
-    }));
+  public Command shootLow() {
+    return this.runOnce(() -> {
+      shoot(ShootSpeed.Low);
+    }).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
+    shootMotorFollower.set(ControlMode.PercentOutput, 0);
+    shootMotor.set(ControlMode.PercentOutput, 0);
+    });
+  }
+
+  public Command shootCannon() {
+    return this.runOnce(() -> {
+      shoot(ShootSpeed.Cannon);
+    }).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
+    shootMotorFollower.set(ControlMode.PercentOutput, 0);
+    shootMotor.set(ControlMode.PercentOutput, 0);
+    });
+  }
+
+  public Command shootFastHigh() {
+    return this.runOnce(() -> {
+      shoot(ShootSpeed.CannonLow);
+    }).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
+    shootMotorFollower.set(ControlMode.PercentOutput, 0);
+    shootMotor.set(ControlMode.PercentOutput, 0);
+    });
+  }
+
+  public Command stop() {
+    return this.runOnce(() -> {
+      shootMotorFollower.set(ControlMode.PercentOutput, 0);
+      shootMotor.set(ControlMode.PercentOutput, 0);
+    });
   }
 
   public Command intake() {
-    return this.runEnd(() -> {
-        moveArmToPosition(9000);
-
-        motorTop.set(ControlMode.PercentOutput, Constants.ShooterConstants.intakeVelocity);
-        motorBottom.set(ControlMode.PercentOutput, Constants.ShooterConstants.intakeVelocity);
-    },(() -> {
-        motorTop.set(ControlMode.PercentOutput, 0);
-        motorBottom.set(ControlMode.PercentOutput, 0);
-        moveArmToPosition(0);
-    }));
+    return this.runEnd(() -> shoot(ShootSpeed.Intake), 
+                      (() -> shoot(ShootSpeed.Stop)));
   }
 
-  public Command moveArmZero() {
-    return this.run(() -> moveArmToPosition(-10000));
+  public Command intake(DoubleSupplier intakeSpeed) {
+    return this.run(() -> {
+                      shootMotor.set(ControlMode.PercentOutput, -intakeSpeed.getAsDouble());
+// 
+                      //  shootMotorFollower.set(ControlMode.PercentOutput, -intakeSpeed.getAsDouble());
+                    });
   }
 
-
-  public Command resetArm() {
+  public Command intakeTime(int seconds) {
     return this.runOnce(() -> {
-        rotateMotor.setSelectedSensorPosition(0);
-        rotateMotorFollower.setSelectedSensorPosition(0);
+      shoot(ShootSpeed.Intake);
+    }).andThen(new WaitCommand(seconds)).andThen(() -> shoot(ShootSpeed.Stop));
+  }
 
-    });
+  public Command intakeCurrent() {
+    return this.run(() -> {
+      shoot(ShootSpeed.Intake);
+    }).andThen(new WaitCommand(1)).andThen(() -> shoot(ShootSpeed.Intake)).until(() -> shootMotor.getStatorCurrent() > Constants.ShooterConstants.currentThreshold).andThen(() -> shoot(ShootSpeed.Stop));
   }
 }

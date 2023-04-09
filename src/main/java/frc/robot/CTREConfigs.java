@@ -57,20 +57,20 @@ public final class CTREConfigs {
 
         /* Shooter Arm Configuration */
         SupplyCurrentLimitConfiguration shooterArmSupplyLimit = new SupplyCurrentLimitConfiguration(
-            Constants.ShooterConstants.shooterArmEnableCurrentLimit, 
-            Constants.ShooterConstants.shooterArmContinuousCurrentLimit, 
-            Constants.ShooterConstants.shooterArmPeakCurrentLimit, 
-            Constants.ShooterConstants.shooterArmPeakCurrentDuration);
+            Constants.ArmConstants.shooterArmEnableCurrentLimit, 
+            Constants.ArmConstants.shooterArmContinuousCurrentLimit, 
+            Constants.ArmConstants.shooterArmPeakCurrentLimit, 
+            Constants.ArmConstants.shooterArmPeakCurrentDuration);
 
-        shooterArmFXConfig.slot0.kP = Constants.ShooterConstants.armkP;
-        shooterArmFXConfig.slot0.kI = Constants.ShooterConstants.armkI;
-        shooterArmFXConfig.slot0.kD = Constants.ShooterConstants.armkD;
-        shooterArmFXConfig.slot0.kF = Constants.ShooterConstants.armkF;
+        shooterArmFXConfig.slot0.kP = Constants.ArmConstants.armkP;
+        shooterArmFXConfig.slot0.kI = Constants.ArmConstants.armkI;
+        shooterArmFXConfig.slot0.kD = Constants.ArmConstants.armkD;
+        shooterArmFXConfig.slot0.kF = Constants.ArmConstants.armkF;
         shooterArmFXConfig.supplyCurrLimit = shooterArmSupplyLimit;
-        shooterArmFXConfig.openloopRamp = Constants.ShooterConstants.openLoopRamp;
+        shooterArmFXConfig.openloopRamp = Constants.ArmConstants.openLoopRamp;
         
-        shooterArmFXConfig.motionCruiseVelocity = Constants.ShooterConstants.motionCruiseVelocity;
-        shooterArmFXConfig.motionAcceleration = Constants.ShooterConstants.motionAcceleration;
+        shooterArmFXConfig.motionCruiseVelocity = Constants.ArmConstants.motionCruiseVelocity;
+        shooterArmFXConfig.motionAcceleration = Constants.ArmConstants.motionAcceleration;
         
     }
 }
