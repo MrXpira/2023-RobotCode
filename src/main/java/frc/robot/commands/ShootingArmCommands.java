@@ -2,6 +2,8 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.subsystems.Arm;
 import frc.robot.subsystems.Shooter;
 import frc.robot.subsystems.Arm.ArmPosition;
@@ -23,6 +25,16 @@ public class ShootingArmCommands {
       return Commands.parallel(arm.moveArmToPosition(ArmPosition.Intake), shooter.intake());
     }
 
+    public Command Intake(double time) {
+      return Commands.deadline(
+        arm.moveArmToPosition(ArmPosition.Intake)
+            .andThen(Commands.waitSeconds(5)), // Or new WaitCommand(5)
+        shooter.intake());
+    }
+    
+
+    
+    
     public Command Rest() {
       return arm.moveArmToPosition(ArmPosition.Rest);
     }

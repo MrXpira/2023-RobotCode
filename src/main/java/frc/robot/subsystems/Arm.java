@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants;
 
 public class Arm extends SubsystemBase {
@@ -89,9 +90,7 @@ public class Arm extends SubsystemBase {
     armMotor.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true, 40, 50, 1));
     armMotor.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, Constants.ArmConstants.shooterArmContinuousCurrentLimit, Constants.ArmConstants.shooterArmPeakCurrentLimit, Constants.ArmConstants.shooterArmPeakCurrentDuration));
     
-    armMotorFollower.follow(armMotor);
-    
-    
+    armMotorFollower.follow(armMotor); 
 
     armMotorFollower.configStatorCurrentLimit(new StatorCurrentLimitConfiguration(true, 40, 45, 1));
     armMotorFollower.configSupplyCurrentLimit(new SupplyCurrentLimitConfiguration(true, Constants.ArmConstants.shooterArmContinuousCurrentLimit, Constants.ArmConstants.shooterArmPeakCurrentLimit, Constants.ArmConstants.shooterArmPeakCurrentDuration));
@@ -145,16 +144,13 @@ public class Arm extends SubsystemBase {
     });
   }
 
-  private double armDegrees() {
-    double armMotorVerticalOffset = 5600;
-    return (armMotor.getSelectedSensorPosition() - armMotorVerticalOffset ) * (360.0/ (Constants.ArmConstants.ArmGearRatio * 2048));
-  }
-
   int kLoopsToSettle = 10;
   int _withinThresholdLoops = 0;
 
   public Command moveArmToPosition(ArmPosition position) {
+    System.out.println("Starting Arm");
     return this.run(() -> {
+      System.out.println("Moving Arm");
       double targetPos;
       targetPos = 0;
       switch (position) {
@@ -186,21 +182,8 @@ public class Arm extends SubsystemBase {
       // we know vertical offset, treat it as 0, then add 90 degrees = pi/2 rad to get angle from horizontal
       double angle = (2*Math.PI / 2048 / 28.44) * (armMotor.getSelectedSensorPosition() - armMotorVerticalOffset) + (Math.PI / 2.0);
 
-      // System.out.println(m_armFF.calculate(angle, armMotor.getSelectedSensorVelocity()));
-      //System.out.println(Math.cos(angle) * .055);
-      
-    //   System.out.println(m_armFF.calculate(angle, targetPos));
-    //   System.out.println("ANGLE" + angle);
-      //armMotor.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, .2);
       armMotor.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, m_armFF.calculate(angle, armMotor.getSelectedSensorVelocity()) / 12);
-      
-      // armMotor.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, Math.cos(angle) * .04);
-      // armMotor.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, 
-      //                 m_armFF.calculate(angle, armMotor.getSelectedSensorVelocity()));
-
-      armMotorFollower.follow(armMotor);
-      System.out.println(armDegrees());
-  
+      armMotorFollower.follow(armMotor);  
 
       if (armMotor.getClosedLoopError() < +50 &&
           armMotor.getClosedLoopError() > -50) {
@@ -212,6 +195,44 @@ public class Arm extends SubsystemBase {
     });//.until(() -> _withinThresholdLoops > kLoopsToSettle).andThen(() -> System.out.println("In postition"));
   }
   
+  public Command moveArmToPositionTimed(ArmPosition position, double time) {
+    System.out.println("Moving Arm");
+    return this.run(() -> {
+      double targetPos;
+      targetPos = 0;
+      switch (position) {
+        case Intake: 
+          targetPos = Constants.ArmConstants.intakePosition;
+          break;
+        case High: 
+          targetPos = Constants.ArmConstants.highPosition;        
+          break;
+        case Low: 
+          targetPos = Constants.ArmConstants.lowPosition;
+          break;
+        case Mid: 
+          targetPos = Constants.ArmConstants.MidPosition;
+          break;
+        case Rest:
+          targetPos = Constants.ArmConstants.restPosition;
+          break;
+        case Cannon:
+          targetPos = Constants.ArmConstants.cannonPosition;
+          break;
+        default: 
+          targetPos = 0;
+          break;
+      }
+      currentArmPosition = position;
+      
+      double armMotorVerticalOffset = 5400;
+      double angle = (2*Math.PI / 2048 / 28.44) * (armMotor.getSelectedSensorPosition() - armMotorVerticalOffset) + (Math.PI / 2.0);
+
+      armMotor.set(ControlMode.MotionMagic, targetPos, DemandType.ArbitraryFeedForward, m_armFF.calculate(angle, armMotor.getSelectedSensorVelocity()) / 12);
+      armMotorFollower.follow(armMotor);  
+    });
+  }
+
   public Command armHigh() {
     return this.run(() -> {
       moveArmToPosition(ArmPosition.High);
@@ -221,7 +242,7 @@ public class Arm extends SubsystemBase {
   public Command resetArm() {
     System.out.println("Arm Reset");
     hasArmBeenReset = true;
-    return this.runOnce(() -> {
+    return this.runOnce(() -> { 
         armMotor.setSelectedSensorPosition(0);
         armMotorFollower.setSelectedSensorPosition(0);
     }).andThen(() -> currentArmPosition = ArmPosition.Rest);

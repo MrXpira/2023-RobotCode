@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import frc.robot.commands.*;
+import frc.robot.commands.swervedrive.auto.ExampleAuto;
 import frc.robot.commands.swervedrive.auto.PathBuilder;
 import frc.robot.commands.swervedrive.drivebase.TeleopSwerve;
 import frc.robot.subsystems.*;
@@ -44,11 +45,10 @@ public class RobotContainer {
     private final Shooter shooter = new Shooter();
     private final Arm arm = new Arm();
     // private final CANdleSubsystem candleSubsystem = new CANdleSubsystem();
-    // private final PoseEstimator poseEstimator = new PoseEstimator(s_Swerve);
 
     /* Commands */
     private final ShootingArmCommands shootingArmCommands = new ShootingArmCommands(shooter, arm);
-    private final AutoMap autoMap = new AutoMap(s_Swerve, shootingArmCommands);
+    private final AutoMap autoMap = new AutoMap(shootingArmCommands, shooter, arm, s_Swerve);
     private final PathBuilder builder = new PathBuilder(s_Swerve, autoMap.getEventMap());
       
 
@@ -57,8 +57,8 @@ public class RobotContainer {
     private final int translationAxis = XboxController.Axis.kLeftY.value;
     private final int strafeAxis = XboxController.Axis.kLeftX.value;
     private final int rotationAxis = XboxController.Axis.kRightX.value;
-    private final DigitalInput resetArmSwitch = new DigitalInput(0); // Limit switch on DIO 0
-    private final DigitalInput unlockArmSwitch = new DigitalInput(1); // Limit switch on DIO 1
+    // private final DigitalInput resetArmSwitch = new DigitalInput(0); // Limit switch on DIO 0
+    // private final DigitalInput unlockArmSwitch = new DigitalInput(1); // Limit switch on DIO 1
 
     public RobotContainer() {
         s_Swerve.setDefaultCommand(
@@ -73,7 +73,7 @@ public class RobotContainer {
 
         arm.setDefaultCommand(shootingArmCommands.Rest());
         shooter.setDefaultCommand(shooter.stop());
-        // candleSubsystem.setDefaultCommand(candleSubsystem.flashGreen());
+
         configureBindings();
         initializeChooser();
     }
@@ -124,17 +124,13 @@ public class RobotContainer {
             "Just Shoot", 
             shooter.shootHigh());
 
-        chooser.addOption(
-            "Shoot And Backup", 
-            shooter.shootHigh().andThen(s_Swerve.moveSlow()).withTimeout(8).andThen(s_Swerve.stop()));
-
-        chooser.addOption(
-            "Shoot High And Taxi-Balance - No PathPlanner",
-            shooter.shootHigh().andThen(
-            s_Swerve.moveOntoChargeStation())
-            .andThen(s_Swerve.move()).withTimeout(4.5)
-            .andThen(s_Swerve.moveRevOntoChargeStation())
-            .andThen(s_Swerve.revbalanceRobot()));
+        // chooser.addOption(
+        //     "Shoot High And Taxi-Balance - No PathPlanner",
+        //     shooter.shootHigh().andThen(
+        //     s_Swerve.moveOntoChargeStation())
+        //     .andThen(s_Swerve.move()).withTimeout(4.5)
+        //     .andThen(s_Swerve.moveRevOntoChargeStation())
+        //     .andThen(s_Swerve.revbalanceRobot()));
     
         SmartDashboard.putData("Auto", chooser);
       }
@@ -145,7 +141,8 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        return chooser.getSelected();
+        // return chooser.getSelected();
+        return builder.getSwerveCommand(PathPlanner.loadPathGroup("Full Turn", new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION)));
     }
 
 

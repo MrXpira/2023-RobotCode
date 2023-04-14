@@ -16,12 +16,14 @@ import org.photonvision.EstimatedRobotPose;
 import com.ctre.phoenix.sensors.Pigeon2;
 
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
@@ -44,13 +46,11 @@ public class SwerveSubsystem extends SubsystemBase {
     public Pigeon2 gyro;
     private final Field2d m_fieldSim = new Field2d();
 
-    
+    private static final Vector<N3> stateStdDevs = VecBuilder.fill(0.1,0.1, Units.degreesToRadians(0.1));
 
-    /*
-     * Here we use DifferentialDrivePoseEstimator so that we can fuse odometry
-     * readings. The
-     * numbers used below are robot specific, and should be tuned.
-     */
+    private static final Vector<N3> visionStdDevs = VecBuilder.fill(0.9,0.9, 100000);
+
+    // private final SwerveDrivePoseEstimator poseEstimator;
     
     private PIDController forwardController;
 
@@ -58,8 +58,8 @@ public class SwerveSubsystem extends SubsystemBase {
     public SwerveSubsystem() {
         gyro = new Pigeon2(Constants.Swerve.pigeonID, Constants.CANBUS);
         gyro.configFactoryDefault();
-        zeroGyro();        
-        gyro.setYaw(180);
+        zeroGyro();
+        // gyro.setYaw(180);
         mSwerveMods = new SwerveModule[] {
             new SwerveModule(0, Constants.Swerve.Mod0.constants),
             new SwerveModule(1, Constants.Swerve.Mod1.constants),
@@ -77,29 +77,64 @@ public class SwerveSubsystem extends SubsystemBase {
         forwardController = new PIDController(.048, 0.0001, 0.01);
         swerveOdometry = new SwerveDriveOdometry(Constants.Swerve.swerveKinematics, getYaw(), getModulePositions());
 
+        // poseEstimator = new SwerveDrivePoseEstimator(
+        //     Constants.Swerve.swerveKinematics, 
+        //     getYaw(), 
+        //     getModulePositions(), 
+        //     getPose(),
+        //     stateStdDevs,
+        //     visionStdDevs);
 
+        SmartDashboard.putData("Field", m_fieldSim);
     }
 
-    // TODO: UPDATE POSE ESTIMATOR TO WORK WITH LIMELIUGHT
+    @Override
+    public void periodic(){
+        swerveOdometry.update(getYaw(), getModulePositions());  
+
+        for(SwerveModule mod : mSwerveMods){
+            SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Cancoder", mod.getCanCoder().getDegrees());
+            SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Integrated", mod.getPosition().angle.getDegrees());
+            SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Velocity", mod.getState().speedMetersPerSecond);    
+        }
+
+        SmartDashboard.putNumber("Pitch", getPitch());
+
+        m_fieldSim.setRobotPose(getPose());
+    }
+
+
+
+    public double[] visionPose() {
+        return DriverStation.getAlliance() == Alliance.Blue ? LimelightHelpers.getBotPose_wpiBlue("") : LimelightHelpers.getBotPose_wpiRed("");
+    }
+
     /** Updates the field-relative position. */
     // public void updateOdometry() {
-    //     m_poseEstimator.update(
+    //     poseEstimator.update(
     //             getYaw(), getModulePositions());
 
-    //     Optional<EstimatedRobotPose> result =
-    //             pcw.getEstimatedGlobalPose(m_poseEstimator.getEstimatedPosition());
+    //     LimelightResults results =  LimelightHelpers.getLatestResults("");     
 
-    //     if (result.isPresent()) {
-    //         EstimatedRobotPose camPose = result.get();
-    //         m_poseEstimator.addVisionMeasurement(
-    //                 camPose.estimatedPose.toPose2d(), camPose.timestampSeconds);
-    //         m_fieldSim.getObject("Cam Est Pos").setPose(camPose.estimatedPose.toPose2d());
+    //     if (results.targetingResults.valid) {
+    //         double[] botpose = visionPose();
+    //         double latency = (Timer.getFPGATimestamp() - (botpose[6]/1000.0));
+           
+    //         Pose2d currentPose = new Pose2d(new Translation2d(botpose[0], botpose[1]), new Rotation2d(Units.degreesToRadians(botpose[5])));
+    //         double trustWorthiness = 1;        
+            
+    //         // Apply vision measurements. For simulation purposes only, we don't input a latency delay -- on
+    //         // a real robot, this must be calculated based either on known latency or timestamps.
+    //         poseEstimator.addVisionMeasurement(currentPose, latency);
+    //         // poseEstimator.addVisionMeasurement(currentPose, latency,VecBuilder.fill(0.9, 0.9, 0.1).times(1.0 / trustWorthiness));
+           
+    //         m_fieldSim.getObject("Cam Est Pos").setPose(currentPose);
     //     } else {
     //         // move it way off the screen to make it disappear
     //         m_fieldSim.getObject("Cam Est Pos").setPose(new Pose2d(-100, -100, new Rotation2d()));
     //     }
 
-    //     m_fieldSim.setRobotPose(m_poseEstimator.getEstimatedPosition());
+    //     m_fieldSim.setRobotPose(poseEstimator.getEstimatedPosition());
     // }
 
     public void drive(Translation2d translation, double rotation, boolean fieldRelative, boolean isOpenLoop) {
@@ -176,22 +211,6 @@ public class SwerveSubsystem extends SubsystemBase {
         }
     }
 
-    @Override
-    public void periodic(){
-        swerveOdometry.update(getYaw(), getModulePositions());  
-
-        for(SwerveModule mod : mSwerveMods){
-            SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Cancoder", mod.getCanCoder().getDegrees());
-            SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Integrated", mod.getPosition().angle.getDegrees());
-            SmartDashboard.putNumber("Mod " + mod.moduleNumber + " Velocity", mod.getState().speedMetersPerSecond);    
-        }
-
-        SmartDashboard.putNumber("Pitch", getPitch());
-        SmartDashboard.putData("Field", m_fieldSim);
-
-        m_fieldSim.setRobotPose(getPose());
-    }
-
     public Command lockWheels() {
         return this.run(() -> {
             System.out.println("Locking Wheels");
@@ -245,19 +264,19 @@ public class SwerveSubsystem extends SubsystemBase {
         }).andThen(() -> System.out.println("finished moving")).andThen(() -> drive(new Translation2d(), 0, true, true));
     }
 
-    public Command move( ) {
+    public Command move() {
         return this.run(() -> {
             drive(new Translation2d(-1.3,0),0, true, true);
         });
     }
 
-    public Command moveSlow( ) {
+    public Command moveSlow() {
         return this.run(() -> {
             drive(new Translation2d(-.65,0),0, true, true);
         });
     }
 
-    public Command stop( ) {
+    public Command stop() {
         return this.runOnce(() -> {
             drive(new Translation2d(0,0),0, true, true);
         });

@@ -225,6 +225,16 @@ public final class Constants {
     public static final double MAX_SPEED        = 4;
     public static final double MAX_ACCELERATION = 2;
 
+    public static final double kMaxSpeedMetersPerSecond = 3;
+    public static final double kMaxAccelerationMetersPerSecondSquared = 3;
+    public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
+    public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
+
+    /* Constraint for the motion profilied robot angle controller */
+    public static final TrapezoidProfile.Constraints kThetaControllerConstraints =
+    new TrapezoidProfile.Constraints(
+        kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
+
     // public static final double lineUpMid = 1.73;
     // public static final List<ScoringArea> scoreAreaList =
         // new ArrayList<ScoringArea>() {
@@ -263,11 +273,9 @@ public final class Constants {
 
 	public static final double moveOntoChargeStationSpeed = 3;
 
-    public static final double kPXController = 0;
+    public static final double kPXController = 8;
 
-    public static final double kPYController = 0;
-
-    public static final double kPThetaController = 0;
+    public static final double kPThetaController = .55;
   }
 
     

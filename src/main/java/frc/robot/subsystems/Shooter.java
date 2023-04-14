@@ -121,6 +121,7 @@ public class Shooter extends SubsystemBase {
   public Command shootHigh() {
     return this.runOnce(() -> {
       shoot(ShootSpeed.High);
+      System.out.println("Shot High");
     }).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
     shootMotorFollower.set(ControlMode.PercentOutput, 0);
     shootMotor.set(ControlMode.PercentOutput, 0);
