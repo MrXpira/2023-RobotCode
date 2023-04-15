@@ -1,10 +1,12 @@
 package frc.robot.commands.swervedrive.auto;
 
 import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
 import com.pathplanner.lib.auto.PIDConstants;
 import com.pathplanner.lib.auto.SwerveAutoBuilder;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Constants.Auton;
@@ -12,6 +14,8 @@ import frc.robot.subsystems.swervedrive.SwerveSubsystem;
 
 import java.util.HashMap;
 import java.util.List;
+
+import org.ejml.dense.row.decomposition.svd.SafeSvd_DDRM;
 
 public class PathBuilder {
   private SwerveAutoBuilder autoBuilder;
@@ -30,6 +34,7 @@ public class PathBuilder {
             eventMap, 
             true, 
             drivebase);
+            
   }
 
   public Command getSwerveCommand(List<PathPlannerTrajectory> path) {

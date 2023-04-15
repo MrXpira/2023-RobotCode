@@ -59,6 +59,10 @@ public class SwerveSubsystem extends SubsystemBase {
         gyro = new Pigeon2(Constants.Swerve.pigeonID, Constants.CANBUS);
         gyro.configFactoryDefault();
         zeroGyro();
+        gyro.configEnableCompass(false);
+        gyro.configDisableNoMotionCalibration(true);
+        gyro.configDisableTemperatureCompensation(true);
+        
         // gyro.setYaw(180);
         mSwerveMods = new SwerveModule[] {
             new SwerveModule(0, Constants.Swerve.Mod0.constants),
@@ -99,7 +103,10 @@ public class SwerveSubsystem extends SubsystemBase {
         }
 
         SmartDashboard.putNumber("Pitch", getPitch());
-
+        SmartDashboard.putNumber("Gyro", gyro.getYaw());
+        SmartDashboard.putNumber("Odom Rotation", getPose().getRotation().getDegrees());
+        
+        // System.out.println(getYaw().getDegrees() + " degrees");
         m_fieldSim.setRobotPose(getPose());
     }
 
@@ -173,7 +180,8 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     public void resetOdometry(Pose2d pose) {
-        swerveOdometry.resetPosition(getYaw(), getModulePositions(), pose);
+        swerveOdometry.resetPosition(pose.getRotation(), getModulePositions(), pose);
+        gyro.setYaw(pose.getRotation().getDegrees());
     }
 
     public SwerveModuleState[] getModuleStates(){
@@ -362,7 +370,7 @@ public class SwerveSubsystem extends SubsystemBase {
                 Constants.Swerve.swerveKinematics, // SwerveDriveKinematics
                 new PIDController(0, 0.0, 0), // PID constants to correct for translation error (used to create the X and Y PID controllers)
                 new PIDController(0, 0.0, 0), // PID constants to correct for rotation error (used to create the rotation controller)
-                new PIDController(0,0,0),
+                new PIDController(.5,0,0),
                 this::setModuleStates, // Module states consumer used to output to the drive subsystem
                 true,     
                 this // The drive subsystem. Used to properly set the requirements of path following commands)

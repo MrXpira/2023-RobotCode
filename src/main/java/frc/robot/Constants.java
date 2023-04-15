@@ -69,6 +69,7 @@ public final class Constants {
         public static final double intakePosition = 20000 ;
         public static final double cannonPosition = 7000;
         public static final int ArmGearRatio = 32;
+        public static final double lowStackPosition = 16000;
         
       }
 
@@ -275,7 +276,7 @@ public final class Constants {
 
     public static final double kPXController = 8;
 
-    public static final double kPThetaController = .55;
+    public static final double kPThetaController = 1;//.57;
   }
 
     

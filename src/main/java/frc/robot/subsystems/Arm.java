@@ -47,7 +47,8 @@ public class Arm extends SubsystemBase {
     Mid,
     High,
     Rest,
-    Cannon
+    Cannon,
+    LowStack
   }
 
   
@@ -172,6 +173,9 @@ public class Arm extends SubsystemBase {
         case Cannon:
           targetPos = Constants.ArmConstants.cannonPosition;
           break;
+        case LowStack:
+          targetPos = Constants.ArmConstants.lowStackPosition;
+          break;
         default: 
           targetPos = 0;
           break;
@@ -218,6 +222,9 @@ public class Arm extends SubsystemBase {
           break;
         case Cannon:
           targetPos = Constants.ArmConstants.cannonPosition;
+          break;
+        case LowStack:
+          targetPos = Constants.ArmConstants.lowStackPosition;
           break;
         default: 
           targetPos = 0;

@@ -99,11 +99,11 @@ public class RobotContainer {
         operatorXbox.a().onTrue(shooter.shootLow());
         operatorXbox.leftBumper().onTrue(shooter.shootCannon());
         operatorXbox.back().onTrue(shooter.shootHigh());
-
+        operatorXbox.leftStick().whileTrue(arm.moveArmToPosition(ArmPosition.LowStack));
 
         /* Manual Override */
         // operatorXbox.start().whileTrue(arm.moveArm(() -> operatorXbox.getRawAxis(3)-operatorXbox.getRawAxis(2)));
-        operatorXbox.leftStick().whileTrue(shooter.intake(() -> operatorXbox.getRawAxis(3) * .2));
+        operatorXbox.rightStick().whileTrue(shooter.intake(() -> operatorXbox.getRawAxis(3) * .2));
     }
 
     private void initializeChooser() {
@@ -142,7 +142,8 @@ public class RobotContainer {
      */
     public Command getAutonomousCommand() {
         // return chooser.getSelected();
-        return builder.getSwerveCommand(PathPlanner.loadPathGroup("Full Turn", new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION)));
+        // return new ExampleAuto(s_Swerve);
+        return builder.getSwerveCommand(PathPlanner.loadPathGroup("New Path", new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION)));
     }
 
 
