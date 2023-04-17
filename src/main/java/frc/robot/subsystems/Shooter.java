@@ -24,7 +24,7 @@ import frc.robot.Constants.ShooterConstants;
 public class Shooter extends SubsystemBase {
   WPI_TalonFX shootMotor; 
   WPI_TalonFX shootMotorFollower;
-
+  CANdleSubsystem caNdleSubsystem;
   DoubleLogEntry shooterSpeed;
   DoubleLogEntry shooterCurrent;
   double pValue;
@@ -38,7 +38,8 @@ public class Shooter extends SubsystemBase {
     CannonLow
   } 
   /** Creates a new Shooter. */
-  public Shooter() {
+  public Shooter(CANdleSubsystem candle) {
+    caNdleSubsystem = candle;
     shootMotorFollower = new WPI_TalonFX(ShooterConstants.SHOOTER_TOP_MOTOR, Constants.CANBUS);
     shootMotor = new WPI_TalonFX(ShooterConstants.SHOOTER_BOTTOM_MOTOR, Constants.CANBUS);
 
@@ -122,7 +123,7 @@ public class Shooter extends SubsystemBase {
     return this.runOnce(() -> {
       shoot(ShootSpeed.High);
       System.out.println("Shot High");
-    }).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
+    }).alongWith(caNdleSubsystem.shootingLightsFlash()).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
     shootMotorFollower.set(ControlMode.PercentOutput, 0);
     shootMotor.set(ControlMode.PercentOutput, 0);
     });
@@ -131,7 +132,7 @@ public class Shooter extends SubsystemBase {
   public Command shootMid() {
     return this.runOnce(() -> {
       shoot(ShootSpeed.Mid);
-    }).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
+    }).alongWith(caNdleSubsystem.shootingLightsFlash()).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
     shootMotorFollower.set(ControlMode.PercentOutput, 0);
     shootMotor.set(ControlMode.PercentOutput, 0);
     });
@@ -140,7 +141,7 @@ public class Shooter extends SubsystemBase {
   public Command shootLow() {
     return this.runOnce(() -> {
       shoot(ShootSpeed.Low);
-    }).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
+    }).alongWith(caNdleSubsystem.shootingLightsFlash()).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
     shootMotorFollower.set(ControlMode.PercentOutput, 0);
     shootMotor.set(ControlMode.PercentOutput, 0);
     });
@@ -149,7 +150,7 @@ public class Shooter extends SubsystemBase {
   public Command shootCannon() {
     return this.runOnce(() -> {
       shoot(ShootSpeed.Cannon);
-    }).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
+    }).alongWith(caNdleSubsystem.cannonLights()).andThen(new WaitCommand(ShooterConstants.shootWaitTime)).andThen(() -> {
     shootMotorFollower.set(ControlMode.PercentOutput, 0);
     shootMotor.set(ControlMode.PercentOutput, 0);
     });
@@ -166,15 +167,18 @@ public class Shooter extends SubsystemBase {
 
   public Command stop() {
     return this.runOnce(() -> {
-      shootMotorFollower.set(ControlMode.PercentOutput, 0);
-      shootMotor.set(ControlMode.PercentOutput, 0);
-    });
+      shoot(ShootSpeed.Stop);
+    }).alongWith(caNdleSubsystem.idleLED());
   }
 
   public Command intake() {
-    return this.runEnd(() -> shoot(ShootSpeed.Intake), 
-                      (() -> shoot(ShootSpeed.Stop)));
+    return this.run(() -> shoot(ShootSpeed.Intake));
   }
+
+  // public Command intake() {
+  //   return this.runEnd(() -> shoot(ShootSpeed.Intake), 
+  //                     (() -> shoot(ShootSpeed.Stop)));
+  // }
 
   public Command intake(DoubleSupplier intakeSpeed) {
     return this.run(() -> {

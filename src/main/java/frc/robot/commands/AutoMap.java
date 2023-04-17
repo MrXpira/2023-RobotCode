@@ -13,7 +13,7 @@ public class AutoMap {
   public final HashMap<String, Command> eventMap = new HashMap<>();
   
   public AutoMap(ShootingArmCommands shootingArmCommands, Shooter shooter, Arm arm, SwerveSubsystem swerveDrive) {
-    eventMap.put("Intake", shootingArmCommands.Intake(5));
+    eventMap.put("Intake", shootingArmCommands.Intake(1.8));
     eventMap.put("ShootHigh", shooter.shootHigh());
     eventMap.put("ShootLow", shooter.shootLow());
     eventMap.put("ShootMid", shooter.shootMid());

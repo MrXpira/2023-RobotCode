@@ -26,17 +26,13 @@ public class ShootingArmCommands {
     }
 
     public Command Intake(double time) {
-      return Commands.deadline(
-        arm.moveArmToPosition(ArmPosition.Intake)
-            .andThen(Commands.waitSeconds(5)), // Or new WaitCommand(5)
-        shooter.intake());
+      return Commands.parallel(
+        arm.moveArmToPosition(ArmPosition.Intake),
+        shooter.intake()).withTimeout(time).andThen(Rest());
     }
-    
-
-    
-    
+        
     public Command Rest() {
-      return arm.moveArmToPosition(ArmPosition.Rest);
+      return Commands.parallel(arm.moveArmToPosition(ArmPosition.Rest), shooter.stop());
     }
 
     public Command ShootHigh() {

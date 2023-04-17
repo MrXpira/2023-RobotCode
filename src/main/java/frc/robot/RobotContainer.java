@@ -1,5 +1,8 @@
 package frc.robot;
 
+import java.net.CacheRequest;
+
+import com.ctre.phoenix.led.CANdle;
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
@@ -17,6 +20,7 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -42,9 +46,9 @@ public class RobotContainer {
     
     /* Subsystems */
     private final SwerveSubsystem s_Swerve = new SwerveSubsystem();
-    private final Shooter shooter = new Shooter();
     private final Arm arm = new Arm();
-    // private final CANdleSubsystem candleSubsystem = new CANdleSubsystem();
+    private final CANdleSubsystem candleSubsystem = new CANdleSubsystem();
+    private final Shooter shooter = new Shooter(candleSubsystem);
 
     /* Commands */
     private final ShootingArmCommands shootingArmCommands = new ShootingArmCommands(shooter, arm);
@@ -71,8 +75,8 @@ public class RobotContainer {
             )
         );
 
-        arm.setDefaultCommand(shootingArmCommands.Rest());
-        shooter.setDefaultCommand(shooter.stop());
+        // arm.setDefaultCommand(shootingArmCommands.Rest());
+        // shooter.setDefaultCommand(shooter.stop());
 
         configureBindings();
         initializeChooser();
@@ -91,15 +95,19 @@ public class RobotContainer {
         driverXbox.b().whileTrue(s_Swerve.moveOntoChargeStation());
         driverXbox.x().whileTrue(s_Swerve.balanceRobot());
 
+        /* Arm Movement */
+        operatorXbox.x().whileTrue(shootingArmCommands.Intake()).whileFalse(shootingArmCommands.Rest());
+        operatorXbox.rightBumper().whileTrue(arm.moveArmToPosition(ArmPosition.Cannon)).whileFalse(shootingArmCommands.Rest());
+        operatorXbox.leftStick().whileTrue(arm.moveArmToPosition(ArmPosition.LowStack)).whileFalse(shootingArmCommands.Rest());
 
-        operatorXbox.x().whileTrue(shootingArmCommands.Intake());
-        operatorXbox.rightBumper().whileTrue(arm.moveArmToPosition(ArmPosition.Cannon));
+        // operatorXbox.x().onTrue(shootingArmCommands.Intake(2));
+
+        /* Shooting */
         operatorXbox.b().onTrue(shooter.shootMid());
         operatorXbox.y().onTrue(shooter.shootFastHigh());
         operatorXbox.a().onTrue(shooter.shootLow());
         operatorXbox.leftBumper().onTrue(shooter.shootCannon());
         operatorXbox.back().onTrue(shooter.shootHigh());
-        operatorXbox.leftStick().whileTrue(arm.moveArmToPosition(ArmPosition.LowStack));
 
         /* Manual Override */
         // operatorXbox.start().whileTrue(arm.moveArm(() -> operatorXbox.getRawAxis(3)-operatorXbox.getRawAxis(2)));
@@ -108,29 +116,56 @@ public class RobotContainer {
 
     private void initializeChooser() {
   
-        chooser.setDefaultOption(
+        chooser.addOption(
               "Shoot High And Balance - No PathPlanner",
               shooter.shootHigh().andThen(
               s_Swerve.moveOntoChargeStation())
               .andThen(s_Swerve.balanceRobot()));
 
+
         chooser.addOption(
-        "Calibration 2 Meter",
-                builder.getSwerveCommand(
-                    PathPlanner.loadPathGroup(
-                        "Test Path", new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION))));
+            "Shoot High And Taxi-Balance - No PathPlanner",
+            shooter.shootHigh().andThen(
+            s_Swerve.moveOntoChargeStation())
+            .andThen(s_Swerve.move()).withTimeout(4.5)
+            .andThen(s_Swerve.moveRevOntoChargeStation())
+            .andThen(s_Swerve.revbalanceRobot()));
 
         chooser.addOption(
             "Just Shoot", 
             shooter.shootHigh());
 
-        // chooser.addOption(
-        //     "Shoot High And Taxi-Balance - No PathPlanner",
-        //     shooter.shootHigh().andThen(
-        //     s_Swerve.moveOntoChargeStation())
-        //     .andThen(s_Swerve.move()).withTimeout(4.5)
-        //     .andThen(s_Swerve.moveRevOntoChargeStation())
-        //     .andThen(s_Swerve.revbalanceRobot()));
+        chooser.addOption(
+        "3 + Mobility - No Bump",
+        builder.getSwerveCommand(
+            PathPlanner.loadPathGroup(
+                "3 Cube Auto", 
+                new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION))));
+
+        chooser.addOption(
+            "3 + Mobility - Bump Side",
+            builder.getSwerveCommand(
+                PathPlanner.loadPathGroup(
+                    "3 Cube Auto Bump Side", 
+                    new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION))));
+    
+        chooser.addOption(
+            "2.5 + Mobility + Balance - No Bump",
+            builder.getSwerveCommand(
+                PathPlanner.loadPathGroup(
+                    "2.5 Cube Balance", 
+                    new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION)))
+                    .andThen(Commands.parallel(s_Swerve.balanceRobot(),shooter.shootMid())));
+
+        chooser.addOption(
+            "1 + Mobility + Balance - Middle",
+            builder.getSwerveCommand(
+                PathPlanner.loadPathGroup(
+                    "1 High + Mobility + Balance", 
+                    new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION)))
+                    .andThen(s_Swerve.balanceRobot()));
+
+
     
         SmartDashboard.putData("Auto", chooser);
       }
@@ -141,9 +176,7 @@ public class RobotContainer {
      * @return the command to run in autonomous
      */
     public Command getAutonomousCommand() {
-        // return chooser.getSelected();
-        // return new ExampleAuto(s_Swerve);
-        return builder.getSwerveCommand(PathPlanner.loadPathGroup("New Path", new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION)));
+        return chooser.getSelected();
     }
 
 

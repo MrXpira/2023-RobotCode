@@ -45,18 +45,18 @@ private Animation toAnimate;
   }
 
   public Command shootingLightsFlash() {
-    return this.run(() -> toAnimate = new StrobeAnimation(157, 3, 252, 0, 98.0 / 256, LedCount));
+    return this.runOnce(() -> toAnimate = new StrobeAnimation(157, 3, 252, 0, 98.0 / 256, LedCount));
   }
 
   public Command idleLED() {
-    return this.run(() -> toAnimate = new TwinkleOffAnimation(157, 3, 252, 0, 0.8, LedCount, TwinkleOffPercent.Percent100));
+    return this.runOnce(() -> toAnimate = new TwinkleOffAnimation(157, 3, 252, 0, 0.8, LedCount, TwinkleOffPercent.Percent100));
   }
 
   public Command cannonLights() {
-    return this.run(() -> toAnimate = new RainbowAnimation(1, 0.4, LedCount));
+    return this.runOnce(() -> toAnimate = new RainbowAnimation(1, 0.4, LedCount));
   }
 
   public Command intake() {
-    return this.run(() -> toAnimate = new ColorFlowAnimation(255, 255, 0, 0, 0.7, LedCount, Direction.Forward));
+    return this.runOnce(() -> toAnimate = new ColorFlowAnimation(255, 255, 0, 0, 0.7, LedCount, Direction.Forward));
   }
 }

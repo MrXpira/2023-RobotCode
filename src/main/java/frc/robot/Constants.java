@@ -125,7 +125,7 @@ public final class Constants {
 
         /* Motor Inverts */
         public static final boolean angleMotorInvert = chosenModule.angleMotorInvert;
-        public static final boolean driveMotorInvert = false; //chosenModule.driveMotorInvert;
+        public static final boolean driveMotorInvert = chosenModule.driveMotorInvert;
 
         /* Angle Encoder Invert */
         public static final boolean canCoderInvert = chosenModule.canCoderInvert;
@@ -268,15 +268,17 @@ public final class Constants {
         //   }
         // };
 
-    public static final double maxSpeedMPS = 5;
+    public static final double maxSpeedMPS = 7;
 
-    public static final double maxAccelerationMPS = 3;
+    public static final double maxAccelerationMPS = 4;
 
 	public static final double moveOntoChargeStationSpeed = 3;
 
-    public static final double kPXController = 8;
+    public static final double kPXController = 4;
 
-    public static final double kPThetaController = 1;//.57;
+    public static final double kPYController = 4;
+
+    public static final double kPThetaController = 4.5;
   }
 
     
