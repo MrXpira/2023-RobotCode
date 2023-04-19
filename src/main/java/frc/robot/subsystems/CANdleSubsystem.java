@@ -41,11 +41,10 @@ private Animation toAnimate;
   @Override
   public void periodic() {
     candle.animate(toAnimate);
-    //candle.animate(new StrobeAnimation(157, 3, 252, 0, .1, LedCount));
   }
 
-  public Command shootingLightsFlash() {
-    return this.runOnce(() -> toAnimate = new StrobeAnimation(157, 3, 252, 0, 98.0 / 256, LedCount));
+  public Command shootingLightsFlash(double speed) {
+    return this.runOnce(() -> toAnimate = new StrobeAnimation(157, 3, 252, 0, speed, LedCount));
   }
 
   public Command idleLED() {
@@ -53,10 +52,18 @@ private Animation toAnimate;
   }
 
   public Command cannonLights() {
-    return this.runOnce(() -> toAnimate = new RainbowAnimation(1, 0.4, LedCount));
+    return this.runOnce(() -> toAnimate = new RainbowAnimation(1, 1, LedCount));
   }
 
   public Command intake() {
     return this.runOnce(() -> toAnimate = new ColorFlowAnimation(255, 255, 0, 0, 0.7, LedCount, Direction.Forward));
+  }
+
+  public Command balanceLights() {
+    return this.runOnce(() -> toAnimate = new StrobeAnimation(0, 255, 0, 0, 0.05, LedCount));
+  }
+
+  public Command warningLights() {
+    return this.runOnce(() -> toAnimate = new StrobeAnimation(255, 0, 0, 0, 0.8, LedCount));
   }
 }

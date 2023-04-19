@@ -77,10 +77,10 @@ public final class Constants {
     public static final int SHOOTER_TOP_MOTOR = 15;
     public static final int SHOOTER_BOTTOM_MOTOR = 16;
 
-    public static final double highGoalVelocityTopMotor = .40;//.36;//.33;//.27;
-    public static final double highGoalVelocityBottomMotor = .44;//.37;//.31;
+    public static final double highGoalVelocityTopMotor = .31;//.40;//.36;//.33;//.27;
+    public static final double highGoalVelocityBottomMotor = .42;//.37;//.31;
 
-    public static final double midGoalVelocityBottomMotor = .23;
+    public static final double midGoalVelocityBottomMotor = .19;
     public static final double midGoalVelocityTopMotor = .23;
 
     public static final double bottomGoalVelocityTopMotor = .16;
@@ -279,6 +279,30 @@ public final class Constants {
     public static final double kPYController = 4;
 
     public static final double kPThetaController = 4.5;
+  }
+
+  public static final class VisionConstants {
+    /* 5027 https://github.com/FRC5727/SwervyBoi/blob/76bf195e5332ee201a1d0d766fbc0b57b428d485/src/main/java/frc/robot/Constants.java */
+    public static final String limelightName = "limelight";
+    public static final double maxXYError = 1.0;
+
+    public static final double[][] ONE_APRIL_TAG_LOOKUP_TABLE = {
+      // {distance in meters, x std deviation, y std deviation, r (in degrees) std deviation}
+      {0, 0.01, 0.01, 10},
+      {1.5, 0.01, 0.01, 10},
+      {3, 0.145, 1.20, 30},
+      {4.5, 0.75, 5.0, 90},
+      {6, 1.0, 8.0, 180}
+    };
+
+    public static final double[][] TWO_APRIL_TAG_LOOKUP_TABLE = {
+      // {distance in meters, x std deviation, y std deviation, r (in degrees) std deviation}
+      {0, 0.01, 0.01, 5},
+      {1.5, 0.02, 0.02, 5},
+      {3, 0.04, 0.04, 15},
+      {4.5, 0.1, 0.1, 30},
+      {6, 0.3, 0.3, 60}
+    };
   }
 
     

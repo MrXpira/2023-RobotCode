@@ -28,7 +28,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
 import frc.robot.commands.*;
-import frc.robot.commands.swervedrive.auto.ExampleAuto;
 import frc.robot.commands.swervedrive.auto.PathBuilder;
 import frc.robot.commands.swervedrive.drivebase.TeleopSwerve;
 import frc.robot.subsystems.*;
@@ -46,13 +45,13 @@ public class RobotContainer {
     
     /* Subsystems */
     private final SwerveSubsystem s_Swerve = new SwerveSubsystem();
+    private final Shooter shooter = new Shooter();
     private final Arm arm = new Arm();
     private final CANdleSubsystem candleSubsystem = new CANdleSubsystem();
-    private final Shooter shooter = new Shooter(candleSubsystem);
 
     /* Commands */
     private final ShootingArmCommands shootingArmCommands = new ShootingArmCommands(shooter, arm);
-    private final AutoMap autoMap = new AutoMap(shootingArmCommands, shooter, arm, s_Swerve);
+    private final AutoMap autoMap = new AutoMap(shootingArmCommands, shooter, arm, s_Swerve, candleSubsystem);
     private final PathBuilder builder = new PathBuilder(s_Swerve, autoMap.getEventMap());
       
 
@@ -77,6 +76,7 @@ public class RobotContainer {
 
         // arm.setDefaultCommand(shootingArmCommands.Rest());
         // shooter.setDefaultCommand(shooter.stop());
+        candleSubsystem.setDefaultCommand(candleSubsystem.idleLED());
 
         configureBindings();
         initializeChooser();
@@ -96,18 +96,20 @@ public class RobotContainer {
         driverXbox.x().whileTrue(s_Swerve.balanceRobot());
 
         /* Arm Movement */
-        operatorXbox.x().whileTrue(shootingArmCommands.Intake()).whileFalse(shootingArmCommands.Rest());
+        operatorXbox.x().whileTrue(Commands.parallel(shootingArmCommands.Intake(), candleSubsystem.intake())).whileFalse(shootingArmCommands.Rest());
         operatorXbox.rightBumper().whileTrue(arm.moveArmToPosition(ArmPosition.Cannon)).whileFalse(shootingArmCommands.Rest());
         operatorXbox.leftStick().whileTrue(arm.moveArmToPosition(ArmPosition.LowStack)).whileFalse(shootingArmCommands.Rest());
 
         // operatorXbox.x().onTrue(shootingArmCommands.Intake(2));
 
         /* Shooting */
-        operatorXbox.b().onTrue(shooter.shootMid());
-        operatorXbox.y().onTrue(shooter.shootFastHigh());
-        operatorXbox.a().onTrue(shooter.shootLow());
-        operatorXbox.leftBumper().onTrue(shooter.shootCannon());
+        operatorXbox.b().onTrue(Commands.parallel(shooter.shootMid(), candleSubsystem.shootingLightsFlash(.4)));
+        operatorXbox.y().onTrue(Commands.parallel(shooter.shootFastHigh(), candleSubsystem.shootingLightsFlash(.7)));
+        operatorXbox.a().onTrue(Commands.parallel(shooter.shootLow(), candleSubsystem.shootingLightsFlash(.1)));
+        operatorXbox.leftBumper().onTrue(Commands.parallel(shooter.shootCannon(), candleSubsystem.cannonLights()));
         operatorXbox.back().onTrue(shooter.shootHigh());
+
+        // operatorXbox.back().onTrue(shootingArmCommands.Cannon());
 
         /* Manual Override */
         // operatorXbox.start().whileTrue(arm.moveArm(() -> operatorXbox.getRawAxis(3)-operatorXbox.getRawAxis(2)));
@@ -116,58 +118,59 @@ public class RobotContainer {
 
     private void initializeChooser() {
   
+        
+
+        chooser.setDefaultOption(
+            "No Bump: 3 + Mobility",
+            builder.getSwerveCommand(
+            PathPlanner.loadPathGroup(
+                "3 Cube Auto", 
+                new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION))));
+    
+        chooser.addOption(
+            "No Bump: 2.5 + Mobility + Balance",
+            builder.getSwerveCommand(
+                PathPlanner.loadPathGroup(
+                    "2.5 Cube Balance", 
+                    new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION)))
+                    .andThen(s_Swerve.moveOntoChargeStation()).andThen(s_Swerve.balanceRobot()));
+
+        chooser.addOption(
+            "No Bump: 3 + Mobility + Balance",
+            builder.getSwerveCommand(
+                PathPlanner.loadPathGroup(
+                    "3 Cube Balance", 
+                    new PathConstraints(6, 3)))
+                    .andThen(s_Swerve.moveRevOntoChargeStation().andThen(s_Swerve.balanceRobot()).andThen(shooter.shootMid())));
+
+        chooser.addOption(
+            "Middle: 1 + Mobility + Balance",
+            builder.getSwerveCommand(
+                PathPlanner.loadPathGroup(
+                    "1 High + Mobility + Balance", 
+                    new PathConstraints(.5, .5)))
+                    .andThen(s_Swerve.moveOntoChargeStation().andThen(s_Swerve.balanceRobot())));
+
+        
+        chooser.addOption(
+            "Bump Side: 3 + Mobility",
+            builder.getSwerveCommand(
+                PathPlanner.loadPathGroup(
+                    "3 Cube Auto Bump Side", 
+                    new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION))));
+                
         chooser.addOption(
               "Shoot High And Balance - No PathPlanner",
               shooter.shootHigh().andThen(
               s_Swerve.moveOntoChargeStation())
               .andThen(s_Swerve.balanceRobot()));
 
-
-        chooser.addOption(
-            "Shoot High And Taxi-Balance - No PathPlanner",
-            shooter.shootHigh().andThen(
-            s_Swerve.moveOntoChargeStation())
-            .andThen(s_Swerve.move()).withTimeout(4.5)
-            .andThen(s_Swerve.moveRevOntoChargeStation())
-            .andThen(s_Swerve.revbalanceRobot()));
-
-        chooser.addOption(
-            "Just Shoot", 
-            shooter.shootHigh());
-
-        chooser.addOption(
-        "3 + Mobility - No Bump",
-        builder.getSwerveCommand(
-            PathPlanner.loadPathGroup(
-                "3 Cube Auto", 
-                new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION))));
-
-        chooser.addOption(
-            "3 + Mobility - Bump Side",
-            builder.getSwerveCommand(
-                PathPlanner.loadPathGroup(
-                    "3 Cube Auto Bump Side", 
-                    new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION))));
-    
-        chooser.addOption(
-            "2.5 + Mobility + Balance - No Bump",
-            builder.getSwerveCommand(
-                PathPlanner.loadPathGroup(
-                    "2.5 Cube Balance", 
-                    new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION)))
-                    .andThen(Commands.parallel(s_Swerve.balanceRobot(),shooter.shootMid())));
-
-        chooser.addOption(
-            "1 + Mobility + Balance - Middle",
-            builder.getSwerveCommand(
-                PathPlanner.loadPathGroup(
-                    "1 High + Mobility + Balance", 
-                    new PathConstraints(Constants.Auton.MAX_SPEED, Constants.Auton.MAX_ACCELERATION)))
-                    .andThen(s_Swerve.balanceRobot()));
-
-
     
         SmartDashboard.putData("Auto", chooser);
+      }
+
+      public Command getAutoChooserResult() {
+        return Commands.runOnce(() -> candleSubsystem.warningLights()).unless(() -> chooser.getSelected() == null);
       }
 
     /**
